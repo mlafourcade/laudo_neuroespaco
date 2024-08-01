@@ -1,0 +1,13 @@
+/* src/components/MainMenu/MainMenu.css */
+.main-menu {
+  background-color: #333;
+}
+
+.toolbar {
+  display: flex;
+  justify-content: space-around;
+}
+
+.menu-button {
+  color: #fff;
+}
