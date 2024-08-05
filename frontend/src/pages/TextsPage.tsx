@@ -1,31 +1,28 @@
-// src/pages/TextsPage.tsx
 import React, { useState } from 'react';
-import { Box, Typography } from '@mui/material';
-import { useData } from '../contexts/DataContext';
+import { Box, Typography, Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField } from '@mui/material';
 import { TextTopicContainer } from '../componentes/TextTopicContainer';
-import { CreateTextForm } from './CreateTextForm';
+import { useData } from '../contexts/DataContext';
 
 export const TextsPage: React.FC = () => {
-  const { topics, addTextToAnswer } = useData();
+  const { topics, addTextToAnswer } = useData(); // Usando contexto para acessar tópicos e adicionar textos
   const [open, setOpen] = useState(false);
-  const [selectedAnswerId, setSelectedAnswerId] = useState<string | null>(null);
-  const [selectedTopicId, setSelectedTopicId] = useState<string | null>(null);
+  const [selectedAnswer, setSelectedAnswer] = useState<{ topicId: string, answerId: string } | null>(null);
+  const [newText, setNewText] = useState('');
 
-  const handleAddTextClick = (topicId: string, answerId: string) => {
-    setSelectedTopicId(topicId);
-    setSelectedAnswerId(answerId);
+  const handleCreateClick = (topicId: string, answerId: string) => {
+    setSelectedAnswer({ topicId, answerId });
     setOpen(true);
   };
 
   const handleClose = () => {
     setOpen(false);
-    setSelectedTopicId(null);
-    setSelectedAnswerId(null);
+    setSelectedAnswer(null);
+    setNewText('');
   };
 
-  const handleSave = (text: string) => {
-    if (selectedTopicId && selectedAnswerId) {
-      addTextToAnswer(selectedTopicId, selectedAnswerId, text);
+  const handleSave = () => {
+    if (selectedAnswer) {
+      addTextToAnswer(selectedAnswer.topicId, selectedAnswer.answerId, newText);
       handleClose();
     }
   };
@@ -39,11 +36,31 @@ export const TextsPage: React.FC = () => {
         <TextTopicContainer
           key={topic.id}
           topic={topic}
-          answers={topic.answers}
-          onAddText={handleAddTextClick}
+          onAddText={handleCreateClick} // Passa a função que abre o modal para adicionar texto
         />
       ))}
-      <CreateTextForm open={open} onClose={handleClose} onSave={handleSave} />
+      <Dialog open={open} onClose={handleClose}>
+        <DialogTitle>Adicionar Texto</DialogTitle>
+        <DialogContent>
+          <TextField
+            multiline
+            rows={10}
+            fullWidth
+            variant="outlined"
+            value={newText}
+            onChange={(e) => setNewText(e.target.value)}
+            sx={{ overflowY: 'auto' }}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleClose} color="primary">
+            Cancelar
+          </Button>
+          <Button onClick={handleSave} color="primary">
+            Salvar
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };
