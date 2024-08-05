@@ -7,6 +7,7 @@ import { AnswersPage } from './pages/AnswersPage';
 import { TextsPage } from './pages/TextsPage';
 import { DataProvider } from './contexts/DataContext';
 import { ModelsPage } from './pages/ModelsPage';
+import { LaudosPage } from './pages/LaudosPage';
 
 function App() {
   return (
@@ -14,7 +15,7 @@ function App() {
       <Router>
         <MainMenu />
         <Routes>
-          <Route path="/" element={<HomePage />} />
+          <Route path="/" element={<LaudosPage />} />
           <Route path="/topicos" element={<TopicsPage />} />
           <Route path="/respostas" element={<AnswersPage />} />
           <Route path="/texts" element={<TextsPage />} />

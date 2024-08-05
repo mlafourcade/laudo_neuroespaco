@@ -1,10 +1,35 @@
-import React, { useRef } from 'react';
-import { Box, Typography, Paper } from '@mui/material';
+import React, { useRef, useState } from 'react';
+import { Box, Typography, Paper, Button, TextField, Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material';
 import { useData } from '../contexts/DataContext';
+
+interface Topic {
+  id: string;
+  question: string;
+}
+
+interface TopicPosition {
+  topicId: string;
+  position: number;
+}
+
+interface Model {
+  id: string;
+  name: string;
+  content: string;
+  topics: TopicPosition[];
+}
 
 export const ModelsPage: React.FC = () => {
   const { topics } = useData();
   const textFieldRef = useRef<HTMLDivElement>(null);
+  const [model, setModel] = useState<Model>({
+    id: 'modelo1',
+    name: '',
+    content: '',
+    topics: []
+  });
+  const [open, setOpen] = useState(false);
+  const [modelName, setModelName] = useState('');
 
   const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault();
@@ -17,6 +42,13 @@ export const ModelsPage: React.FC = () => {
       span.innerHTML = topicText;
       if (range) {
         range.insertNode(span);
+        setModel(prevModel => ({
+          ...prevModel,
+          topics: [
+            ...prevModel.topics,
+            { topicId, position: range.startOffset }
+          ]
+        }));
       }
     }
   };
@@ -32,6 +64,39 @@ export const ModelsPage: React.FC = () => {
         selection.addRange(range);
       }
     }
+  };
+
+  const handleSave = () => {
+    if (textFieldRef.current) {
+      const content = textFieldRef.current.innerHTML;
+      setModel(prevModel => ({
+        ...prevModel,
+        content
+      }));
+      setOpen(true); // Open modal to input model name
+    }
+  };
+
+  const handleDialogClose = () => {
+    setOpen(false);
+  };
+
+  const handleModelNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setModelName(event.target.value);
+  };
+
+  const handleSaveModel = () => {
+    if (modelName.trim() === '') {
+      alert('O nome do modelo não pode estar vazio.');
+      return;
+    }
+    setModel(prevModel => ({
+      ...prevModel,
+      name: modelName
+    }));
+    // Here, you would typically send the `model` object to your backend or state management.
+    console.log('Modelo salvo:', model);
+    handleDialogClose();
   };
 
   return (
@@ -84,7 +149,7 @@ export const ModelsPage: React.FC = () => {
           ref={textFieldRef}
           sx={{
             width: '100%',
-            height: '100%',
+            height: 'calc(100% - 40px)', // Ajuste para o rodapé
             border: '1px solid #ddd',
             borderRadius: '4px',
             padding: '10px',
@@ -94,7 +159,40 @@ export const ModelsPage: React.FC = () => {
             cursor: 'text',
           }}
         />
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={handleSave}
+          sx={{ marginTop: '10px' }}
+        >
+          Salvar
+        </Button>
       </Box>
+
+      {/* Modal para Nome do Modelo */}
+      <Dialog open={open} onClose={handleDialogClose}>
+        <DialogTitle>Nome do Modelo</DialogTitle>
+        <DialogContent>
+          <TextField
+            autoFocus
+            margin="dense"
+            label="Nome do Modelo"
+            type="text"
+            fullWidth
+            variant="outlined"
+            value={modelName}
+            onChange={handleModelNameChange}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleDialogClose} color="primary">
+            Cancelar
+          </Button>
+          <Button onClick={handleSaveModel} color="primary">
+            Salvar
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };

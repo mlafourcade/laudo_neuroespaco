@@ -1,4 +1,3 @@
-// src/context/DataContext.tsx
 import React, { createContext, useContext, useState } from 'react';
 
 // Definições de tipos
@@ -14,11 +13,19 @@ export type Topic = {
   answers: Answer[];
 }
 
+export type Model = {
+  id: string;
+  name: string;
+  content: { text: string, positions: { topicId: string, position: number }[] }[];
+}
+
 export type DataContextType = {
   topics: Topic[];
+  models: Model[];
   addTopic: (topic: Topic) => void;
   addAnswerToTopic: (topicId: string, answerText: string) => void;
   addTextToAnswer: (topicId: string, answerId: string, textContent: string) => void;
+  addModel: (model: Model) => void;
 }
 
 // Criação do contexto
@@ -27,6 +34,7 @@ const DataContext = createContext<DataContextType | undefined>(undefined);
 // Provedor de contexto
 export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [topics, setTopics] = useState<Topic[]>([]);
+  const [models, setModels] = useState<Model[]>([]);
 
   // Função para adicionar um tópico
   const addTopic = (topic: Topic) => {
@@ -61,8 +69,13 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     );
   };
 
+  // Função para adicionar um modelo
+  const addModel = (model: Model) => {
+    setModels((prevModels) => [...prevModels, model]);
+  };
+
   return (
-    <DataContext.Provider value={{ topics, addTopic, addAnswerToTopic, addTextToAnswer }}>
+    <DataContext.Provider value={{ topics, models, addTopic, addAnswerToTopic, addTextToAnswer, addModel }}>
       {children}
     </DataContext.Provider>
   );
