@@ -15,18 +15,16 @@ interface TopicPosition {
 interface Model {
   id: string;
   name: string;
-  content: string;
-  topics: TopicPosition[];
+  content: { text: string, positions: TopicPosition[] }[];
 }
 
 export const ModelsPage: React.FC = () => {
-  const { topics } = useData();
+  const { topics, addModel } = useData();
   const textFieldRef = useRef<HTMLDivElement>(null);
   const [model, setModel] = useState<Model>({
     id: 'modelo1',
     name: '',
-    content: '',
-    topics: []
+    content: [{ text: '', positions: [] }]
   });
   const [open, setOpen] = useState(false);
   const [modelName, setModelName] = useState('');
@@ -42,12 +40,14 @@ export const ModelsPage: React.FC = () => {
       span.innerHTML = topicText;
       if (range) {
         range.insertNode(span);
+        const position = range.startOffset;
+        const text = textFieldRef.current.innerHTML;
         setModel(prevModel => ({
           ...prevModel,
-          topics: [
-            ...prevModel.topics,
-            { topicId, position: range.startOffset }
-          ]
+          content: [{
+            text,
+            positions: [...prevModel.content[0].positions, { topicId, position }]
+          }]
         }));
       }
     }
@@ -71,7 +71,10 @@ export const ModelsPage: React.FC = () => {
       const content = textFieldRef.current.innerHTML;
       setModel(prevModel => ({
         ...prevModel,
-        content
+        content: [{
+          text: content,
+          positions: prevModel.content[0].positions
+        }]
       }));
       setOpen(true); // Open modal to input model name
     }
@@ -94,8 +97,8 @@ export const ModelsPage: React.FC = () => {
       ...prevModel,
       name: modelName
     }));
-    // Here, you would typically send the `model` object to your backend or state management.
-    console.log('Modelo salvo:', model);
+    addModel(model);
+    setModelName('');
     handleDialogClose();
   };
 
