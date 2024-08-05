@@ -1,31 +1,33 @@
+// src/pages/TextsPage.tsx
 import React, { useState } from 'react';
 import { Box, Typography } from '@mui/material';
+import { useData } from '../contexts/DataContext';
 import { TextTopicContainer } from '../componentes/TextTopicContainer';
+import { CreateTextForm } from './CreateTextForm';
 
 export const TextsPage: React.FC = () => {
-  const [topics, setTopics] = useState<{ [key: string]: { answer: string; texts: string[] }[] }>({
-    'Tópico 1': [
-      { answer: 'Resposta A', texts: ['Texto 1A', 'Texto 2A'] },
-      { answer: 'Resposta B', texts: [] },
-    ],
-    'Tópico 2': [
-      { answer: 'Resposta C', texts: ['Texto 1C'] },
-    ],
-    // Dados de exemplo
-  });
+  const { topics, addTextToAnswer } = useData();
+  const [open, setOpen] = useState(false);
+  const [selectedAnswerId, setSelectedAnswerId] = useState<string | null>(null);
+  const [selectedTopicId, setSelectedTopicId] = useState<string | null>(null);
 
-  const handleAddText = (answer: string, text: string) => {
-    setTopics((prevTopics) => {
-      const updatedTopics = { ...prevTopics };
-      for (const topic in updatedTopics) {
-        const answerIndex = updatedTopics[topic].findIndex(a => a.answer === answer);
-        if (answerIndex !== -1) {
-          updatedTopics[topic][answerIndex].texts.push(text);
-          break;
-        }
-      }
-      return updatedTopics;
-    });
+  const handleAddTextClick = (topicId: string, answerId: string) => {
+    setSelectedTopicId(topicId);
+    setSelectedAnswerId(answerId);
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+    setSelectedTopicId(null);
+    setSelectedAnswerId(null);
+  };
+
+  const handleSave = (text: string) => {
+    if (selectedTopicId && selectedAnswerId) {
+      addTextToAnswer(selectedTopicId, selectedAnswerId, text);
+      handleClose();
+    }
   };
 
   return (
@@ -33,14 +35,15 @@ export const TextsPage: React.FC = () => {
       <Typography variant="h4" gutterBottom>
         Textos
       </Typography>
-      {Object.entries(topics).map(([topic, answers]) => (
+      {topics.map((topic) => (
         <TextTopicContainer
-          key={topic}
+          key={topic.id}
           topic={topic}
-          answers={answers}
-          onAddText={handleAddText}
+          answers={topic.answers}
+          onAddText={handleAddTextClick}
         />
       ))}
+      <CreateTextForm open={open} onClose={handleClose} onSave={handleSave} />
     </Box>
   );
-}
+};

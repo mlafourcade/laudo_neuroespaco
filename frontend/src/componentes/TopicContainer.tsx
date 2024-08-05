@@ -1,45 +1,50 @@
-// src/components/TopicContainer.tsx
 import React, { useState } from 'react';
-import { Box, Typography, List, ListItem, Button } from '@mui/material';
-import { Answer, Topic } from '../contexts/DataContext.tsx';
+import { Box, Typography, List, ListItem, ListItemText, Button } from '@mui/material';
+import { useData } from '../contexts/DataContext';
+import { CreateAnswerForm } from '../pages/CreateAnswerForm';
 
-interface TopicContainerProps {
-  topic: Topic;
-  onAddAnswer: (answerText: string) => void;
-}
+export const AnswersPage: React.FC = () => {
+  const { topics, addAnswerToTopic } = useData(); // Acessando tópicos globais e função de adicionar respostas
+  const [selectedTopicId, setSelectedTopicId] = useState<string | null>(null);
+  const [open, setOpen] = useState(false);
 
-export const TopicContainer: React.FC<TopicContainerProps> = ({ topic, onAddAnswer }) => {
-  const [newAnswerText, setNewAnswerText] = useState('');
+  const handleCreateClick = (topicId: string) => {
+    setSelectedTopicId(topicId);
+    setOpen(true);
+  };
 
-  const handleAddAnswer = () => {
-    if (newAnswerText.trim()) {
-      onAddAnswer(newAnswerText);
-      setNewAnswerText('');
+  const handleClose = () => {
+    setOpen(false);
+  };
+
+  const handleSave = (answer: string) => {
+    if (selectedTopicId) {
+      addAnswerToTopic(selectedTopicId, answer);
+      setOpen(false);
     }
   };
 
   return (
-    <Box sx={{ padding: '16px', marginBottom: '16px', border: '1px solid #ddd', borderRadius: '4px' }}>
-      <Typography variant="h6">{topic.question}</Typography>
-      <List>
-        {topic.answers.map((answer: Answer) => (
-          <ListItem key={answer.id}>
-            <Typography>{answer.text}</Typography>
-          </ListItem>
-        ))}
-      </List>
-      <Box sx={{ display: 'flex', alignItems: 'center', marginTop: '8px' }}>
-        <input
-          type="text"
-          value={newAnswerText}
-          onChange={(e) => setNewAnswerText(e.target.value)}
-          placeholder="Adicionar resposta"
-          style={{ flexGrow: 1, marginRight: '8px' }}
-        />
-        <Button variant="contained" color="primary" onClick={handleAddAnswer}>
-          Criar
-        </Button>
-      </Box>
+    <Box sx={{ padding: '20px' }}>
+      <Typography variant="h4" gutterBottom>
+        Respostas
+      </Typography>
+      {topics.map((topic) => (
+        <Box key={topic.id} sx={{ marginBottom: '20px', padding: '10px', border: '1px solid #ddd', borderRadius: '8px' }}>
+          <Typography variant="h6">{topic.question}</Typography>
+          <List>
+            {topic.answers.map((answer) => (
+              <ListItem key={answer.id}>
+                <ListItemText primary={answer.text} />
+              </ListItem>
+            ))}
+          </List>
+          <Button variant="contained" color="primary" onClick={() => handleCreateClick(topic.id)}>
+            Criar Resposta
+          </Button>
+        </Box>
+      ))}
+      <CreateAnswerForm open={open} onClose={handleClose} onSave={handleSave} />
     </Box>
   );
 };

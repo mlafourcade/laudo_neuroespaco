@@ -5,7 +5,7 @@ import { TopicsPage } from './pages/TopicsPage';
 import { HomePage } from './pages/HomePage';
 import { AnswersPage } from './pages/AnswersPage';
 import { TextsPage } from './pages/TextsPage';
-import { DataProvider } from './contexts/DataContext.tsx';
+import { DataProvider } from './contexts/DataContext';
 
 function App() {
   return (

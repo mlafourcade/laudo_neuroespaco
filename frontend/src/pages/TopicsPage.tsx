@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Box, Button, List, ListItem, ListItemText, Typography } from '@mui/material';
 import { CreateTopicForm } from './CreateTopicForm';
-import { useData } from '../contexts/DataContext.tsx';
+import { useData } from '../contexts/DataContext';
 
 export const TopicsPage: React.FC = () => {
   const { topics, addTopic } = useData(); // Usando contexto para acessar tópicos globais e função de adicionar tópicos
