@@ -6,6 +6,7 @@ import { HomePage } from './pages/HomePage';
 import { AnswersPage } from './pages/AnswersPage';
 import { TextsPage } from './pages/TextsPage';
 import { DataProvider } from './contexts/DataContext';
+import { ModelsPage } from './pages/ModelsPage';
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
           <Route path="/topicos" element={<TopicsPage />} />
           <Route path="/respostas" element={<AnswersPage />} />
           <Route path="/texts" element={<TextsPage />} />
+          <Route path="/modelos" element={<ModelsPage />} />
         </Routes>
       </Router>
     </DataProvider>
