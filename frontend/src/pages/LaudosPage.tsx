@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
-import { Box, Typography, Button, SelectChangeEvent, Select, MenuItem, Paper, List, ListItem, ListItemText } from '@mui/material';
+import { Box, Typography, List, ListItem, ListItemText, Button, Paper, Select, MenuItem, SelectChangeEvent, Switch } from '@mui/material';
 import { Model, useData } from '../contexts/DataContext';
 import { CreateAnswerForm } from './CreateAnswerForm';
 
 export const LaudosPage: React.FC = () => {
-  const { models, topics, addAnswerToTopic } = useData();
+  const { models, topics } = useData();
   const [selectedModelId, setSelectedModelId] = useState<string>('');
   const [open, setOpen] = useState(false);
   const [selectedTopicId, setSelectedTopicId] = useState<string | null>(null);
+  const [switchStates, setSwitchStates] = useState<{ [topicId: string]: string }>({}); // topicId => answerId
 
   const handleModelChange = (event: SelectChangeEvent<string>) => {
     setSelectedModelId(event.target.value as string);
@@ -24,44 +25,59 @@ export const LaudosPage: React.FC = () => {
 
   const handleSave = (answer: string) => {
     if (selectedTopicId) {
-      addAnswerToTopic(selectedTopicId, answer);
+      // Supondo que você tem uma função para adicionar uma resposta
+      // addAnswerToTopic(selectedTopicId, answer);
       setOpen(false);
     }
   };
 
-  const selectedModel = models.find(model => model.id === selectedModelId);
+  const handleSwitchChange = (topicId: string, answerId: string, checked: boolean) => {
+    if (checked) {
+      // Ativa o switch e desativa os outros switches no mesmo tópico
+      setSwitchStates(prev => ({ ...prev, [topicId]: answerId }));
+    } else {
+      // Desativa o switch
+      setSwitchStates(prev => ({ ...prev, [topicId]: '' }));
+    }
+  };
 
   const renderModelContent = (model: Model) => {
     return model.content.map((part, index) => {
       const sortedPositions = [...part.positions].sort((a, b) => a.position - b.position);
-  
+
       let lastIndex = 0;
       const fragments: React.ReactNode[] = [];
-  
+
       sortedPositions.forEach((position, posIndex) => {
         const start = lastIndex;
         const end = position.position;
         lastIndex = end;
-  
-        // Adiciona o texto antes do próximo tópico
+
+        // Adiciona o texto antes do próximo campo
         const textBefore = part.text.substring(start, end);
         fragments.push(<span key={`text-${index}-${posIndex}`}>{textBefore}</span>);
-  
-        // Adiciona o ID do tópico na posição correta
+
+        // Adiciona o texto da resposta acionada na posição do campo
+        const topic = topics.find(t => t.id === position.topicId);
+        const activeAnswerId = switchStates[position.topicId];
+        const activeAnswer = topic?.answers.find(answer => answer.id === activeAnswerId);
+        const textToShow = activeAnswer?.responseText || '';
         fragments.push(
-          <span key={`topic-${index}-${posIndex}`} style={{ color: 'blue' }}>
-            {position.topicId}
+          <span key={`field-${index}-${posIndex}`} style={{ color: 'blue' }}>
+            {textToShow}
           </span>
         );
       });
-  
-      // Adiciona o texto restante após o último tópico
+
+      // Adiciona o texto restante após o último campo
       const remainingText = part.text.substring(lastIndex);
       fragments.push(<span key={`remaining-${index}`}>{remainingText}</span>);
-  
+
       return <React.Fragment key={index}>{fragments}</React.Fragment>;
     });
   };
+
+  const selectedModel = models.find(model => model.id === selectedModelId);
 
   return (
     <Box sx={{ display: 'flex', height: '100vh' }}>
@@ -115,9 +131,13 @@ export const LaudosPage: React.FC = () => {
                         </Typography>
                         {/* Exibindo respostas do tópico */}
                         <List>
-                          {topic?.answers.map(answer => (
+                          {topic?.answers.map((answer) => (
                             <ListItem key={answer.id}>
                               <ListItemText primary={answer.text} />
+                              <Switch
+                                checked={switchStates[position.topicId] === answer.id}
+                                onChange={(e) => handleSwitchChange(position.topicId, answer.id, e.target.checked)}
+                              />
                             </ListItem>
                           ))}
                         </List>
@@ -144,7 +164,7 @@ export const LaudosPage: React.FC = () => {
           Detalhes do Modelo
         </Typography>
         {selectedModel && (
-          <Box sx={{ overflowY: 'auto', flexGrow: 1 }}>
+          <Box sx={{ overflowY: 'auto' }}>
             {renderModelContent(selectedModel)}
           </Box>
         )}
