@@ -30,10 +30,10 @@ export const MainMenu: React.FC = () => {
         </Typography>
         <Tabs value={value} onChange={handleChange} textColor="inherit" indicatorColor="secondary">
           <Tab label="Laudos" component={Link} to="/" />
+          <Tab label="Modelos" component={Link} to="/modelos" />
           <Tab label="Tópicos" component={Link} to="/topicos" />
           <Tab label="Respostas" component={Link} to="/respostas" />
           <Tab label="Textos" component={Link} to="/texts" />
-          <Tab label="Modelos" component={Link} to="/modelos" />
         </Tabs>
       </Toolbar>
     </AppBar>

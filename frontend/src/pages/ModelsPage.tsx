@@ -12,23 +12,22 @@ interface TopicPosition {
   position: number;
 }
 
-interface ContentPart {
-  text: string;
-  positions: TopicPosition[];
-}
-
 interface Model {
   id: string;
   name: string;
-  content: ContentPart[];
+  content: { text: string, positions: TopicPosition[] }[];
 }
 
 export const ModelsPage: React.FC = () => {
-  const { topics, models, addModel } = useData(); // Usando o DataContext para acessar os modelos globais e função de adicionar modelo
+  const { topics, addModel } = useData();
   const textFieldRef = useRef<HTMLDivElement>(null);
+  const [model, setModel] = useState<Model>({
+    id: 'modelo1',
+    name: '',
+    content: [{ text: '', positions: [] }]
+  });
   const [open, setOpen] = useState(false);
   const [modelName, setModelName] = useState('');
-  const [modelContent, setModelContent] = useState<ContentPart[]>([]);
 
   const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault();
@@ -36,18 +35,20 @@ export const ModelsPage: React.FC = () => {
     const topic = topics.find(t => t.id === topicId);
     if (topic && textFieldRef.current) {
       const range = document.caretRangeFromPoint(event.clientX, event.clientY);
-      const topicText = `{${topic.question}}`;
+      const topicText = `<span style="color: blue;">{${topic.question}}</span>`;
+      const span = document.createElement("span");
+      span.innerHTML = topicText;
       if (range) {
-        const span = document.createElement("span");
-        span.innerText = topicText;
-        span.style.color = 'blue';
         range.insertNode(span);
-
         const position = range.startOffset;
-        setModelContent(prevContent => [
-          ...prevContent,
-          { text: topicText, positions: [{ topicId, position }] }
-        ]);
+        const text = textFieldRef.current.innerHTML;
+        setModel(prevModel => ({
+          ...prevModel,
+          content: [{
+            text,
+            positions: [...prevModel.content[0].positions, { topicId, position }]
+          }]
+        }));
       }
     }
   };
@@ -67,7 +68,15 @@ export const ModelsPage: React.FC = () => {
 
   const handleSave = () => {
     if (textFieldRef.current) {
-      setOpen(true); // Abrir modal para entrada do nome do modelo
+      const content = textFieldRef.current.innerHTML;
+      setModel(prevModel => ({
+        ...prevModel,
+        content: [{
+          text: content,
+          positions: prevModel.content[0].positions
+        }]
+      }));
+      setOpen(true); // Open modal to input model name
     }
   };
 
@@ -84,60 +93,15 @@ export const ModelsPage: React.FC = () => {
       alert('O nome do modelo não pode estar vazio.');
       return;
     }
-  
-    if (textFieldRef.current) {
-      // Obtém o HTML da área de texto
-      const htmlContent = textFieldRef.current.innerHTML;
-  
-      // Converte HTML para texto e identifica placeholders
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(htmlContent, 'text/html');
-      const textNodes = doc.body.childNodes;
-      const contentParts: ContentPart[] = [];
-      let currentText = '';
-      let positions: TopicPosition[] = [];
-  
-      textNodes.forEach((node) => {
-        if (node.nodeType === Node.TEXT_NODE) {
-          currentText += node.textContent;
-        } else if (node.nodeType === Node.ELEMENT_NODE) {
-          const element = node as HTMLElement;
-          if (element.tagName === 'SPAN' && element.style.color === 'blue') {
-            // Adiciona o texto atual como uma parte do modelo
-            if (currentText) {
-              contentParts.push({ text: currentText, positions });
-              currentText = '';
-              positions = [];
-            }
-  
-            // Adiciona a parte do tópico
-            const topicId = topics.find(t => `{${t.question}}` === element.innerText)?.id;
-            if (topicId) {
-              positions.push({ topicId, position: 0 });
-            }
-          }
-        }
-      });
-  
-      // Adiciona o texto restante
-      if (currentText) {
-        contentParts.push({ text: currentText, positions });
-      }
-  
-      // Cria o novo modelo com o conteúdo formatado
-      const newModel: Model = {
-        id: Date.now().toString(), // Usar uma lógica mais robusta para gerar ID em produção
-        name: modelName,
-        content: contentParts
-      };
-      
-      // Adiciona o modelo ao contexto global
-      addModel(newModel);
-      console.log('Modelo salvo:', newModel);
-      handleDialogClose();
-    }
-  };  
-  
+    setModel(prevModel => ({
+      ...prevModel,
+      name: modelName
+    }));
+    addModel(model);
+    setModelName('');
+    handleDialogClose();
+  };
+
   return (
     <Box sx={{ display: 'flex', height: '100vh' }}>
       {/* Lateral Esquerda: Lista de Tópicos */}
