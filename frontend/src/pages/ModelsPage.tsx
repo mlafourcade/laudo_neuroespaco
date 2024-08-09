@@ -1,6 +1,8 @@
 import React, { useRef, useState } from 'react';
-import { Box, Typography, Paper, Button, TextField, Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material';
+import { Box, Typography, Paper, Button, TextField, Dialog, DialogActions, DialogContent, DialogTitle, Select, MenuItem, SelectChangeEvent } from '@mui/material';
 import { useData } from '../contexts/DataContext';
+import useStyles from './PageStyles'; // Importando os estilos
+import AddIcon from '@mui/icons-material/Add';
 
 interface Topic {
   id: string;
@@ -17,6 +19,7 @@ interface ContentPart {
   positions: TopicPosition[];
 }
 
+
 interface Model {
   id: string;
   name: string;
@@ -24,6 +27,7 @@ interface Model {
 }
 
 export const ModelsPage: React.FC = () => {
+  const classes = useStyles();
   const { topics, models, addModel } = useData(); // Usando o DataContext para acessar os modelos globais e função de adicionar modelo
   const textFieldRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
@@ -138,71 +142,116 @@ export const ModelsPage: React.FC = () => {
     }
   };  
   
+  const handleModelSelect = (event: SelectChangeEvent<string>) => {
+    const selectedId = event.target.value as string;
+    const selectedModel = models.find(model => model.id === selectedId);
+    if (selectedModel) {
+      renderModelContent(selectedModel); // Atualiza o conteúdo da caixa de texto
+    }
+  };
+
+  const renderModelContent = (model: Model) => {
+    if (textFieldRef.current) {
+      let htmlContent = '';
+      let lastIndex = 0;
+  
+      // Itera sobre cada parte do conteúdo do modelo
+      model.content.forEach(part => {
+        // Adiciona o texto anterior antes da parte atual
+        htmlContent += part.text;
+  
+        // Adiciona os tópicos nas posições correspondentes
+        part.positions.forEach(position => {
+          const topic = topics.find(t => t.id === position.topicId);
+          if (topic) {
+            const topicHtml = `<span class="${classes.topic}">{${topic.question}}</span>`;
+            // Adiciona o nome do tópico no texto na posição especificada
+            htmlContent = htmlContent.slice(0, position.position + lastIndex) +
+              topicHtml + 
+              htmlContent.slice(position.position + lastIndex);
+          }
+        });
+  
+        lastIndex += part.text.length;
+      });
+  
+      // Atualiza o conteúdo da área de texto com o HTML gerado
+      textFieldRef.current.innerHTML = htmlContent;
+  
+      // Ajusta a posição do cursor para o início
+      const range = document.createRange();
+      const selection = window.getSelection();
+      if (selection) {
+        range.setStart(textFieldRef.current.firstChild || textFieldRef.current, 0);
+        range.collapse(true);
+        selection.removeAllRanges();
+        selection.addRange(range);
+      }
+    }
+  };
+
+  const handleAddModel = () => {
+    if (textFieldRef.current) {
+      setOpen(true); // Abrir modal para entrada do nome do modelo
+    }
+  };
+
   return (
-    <Box sx={{ display: 'flex', height: '100vh' }}>
+    <Box className={classes.root}>
       {/* Lateral Esquerda: Lista de Tópicos */}
-      <Box
-        sx={{
-          width: '50%',
-          padding: '20px',
-          borderRight: '1px solid #ddd',
-          overflowY: 'auto',
-        }}
-      >
+      <Box className={classes.leftSide}>
         <Typography variant="h4" gutterBottom>
           Tópicos
         </Typography>
         {topics.map((topic) => (
           <Paper
             key={topic.id}
-            sx={{
-              padding: '16px',
-              marginBottom: '10px',
-              cursor: 'move',
-              backgroundColor: '#fafafa',
-            }}
+            className={classes.paper}
             draggable
             onDragStart={(e) => e.dataTransfer.setData('text', topic.id)}
-          >
+          >            
             {topic.question}
           </Paper>
         ))}
       </Box>
 
       {/* Lateral Direita: Área de Texto */}
-      <Box
-        sx={{
-          width: '50%',
-          padding: '20px',
-          display: 'flex',
-          flexDirection: 'column',
-        }}
-        onDrop={handleDrop}
-        onDragOver={handleDragOver}
-      >
-        <Typography variant="h4" gutterBottom>
-          Modelo de Texto
-        </Typography>
+      <Box className={classes.rightSide} onDrop={handleDrop} onDragOver={handleDragOver}>
+        <Box className={classes.selectContainer}>
+          <Select
+            // value={selectedModelId}
+            onChange={handleModelSelect}
+            displayEmpty
+            className={classes.select}
+          >
+            <MenuItem value="">
+              <em>Selecione um modelo</em>
+            </MenuItem>
+            {models.map((model) => (
+              <MenuItem key={model.id} value={model.id}>
+                {model.name}
+              </MenuItem>
+            ))}
+          </Select>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleAddModel}
+            className={classes.addButton}
+          >
+            <AddIcon />
+          </Button>
+        </Box>
         <Box
           contentEditable
           ref={textFieldRef}
-          sx={{
-            width: '100%',
-            height: 'calc(100% - 40px)', // Ajuste para o rodapé
-            border: '1px solid #ddd',
-            borderRadius: '4px',
-            padding: '10px',
-            overflowY: 'auto',
-            whiteSpace: 'pre-wrap',
-            outline: 'none',
-            cursor: 'text',
-          }}
+          className={classes.textField}
         />
         <Button
           variant="contained"
           color="primary"
           onClick={handleSave}
-          sx={{ marginTop: '10px' }}
+          className={classes.save}
         >
           Salvar
         </Button>
