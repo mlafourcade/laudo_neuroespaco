@@ -150,6 +150,15 @@ export const ModelsPage: React.FC = () => {
     }
   };
 
+  const handleDragStart = (event: React.DragEvent<HTMLSpanElement>) => {
+    const topicId = event.dataTransfer.getData('text');
+    setModelContent(prevContent =>
+      prevContent.filter(contentPart =>
+        !contentPart.positions.some(position => position.topicId === topicId)
+      )
+    );
+  };
+
   const renderModelContent = (model: Model) => {
     if (textFieldRef.current) {
       let htmlContent = '';
@@ -164,7 +173,7 @@ export const ModelsPage: React.FC = () => {
         part.positions.forEach(position => {
           const topic = topics.find(t => t.id === position.topicId);
           if (topic) {
-            const topicHtml = `<span class="${classes.topic}">{${topic.question}}</span>`;
+            const topicHtml = `<span style="color: blue; cursor: pointer; user-select: text;" draggable="true" ondragstart="handleDragStart(event)">{${topic.question}}</span>`;
             // Adiciona o nome do tópico no texto na posição especificada
             htmlContent = htmlContent.slice(0, position.position + lastIndex) +
               topicHtml + 
