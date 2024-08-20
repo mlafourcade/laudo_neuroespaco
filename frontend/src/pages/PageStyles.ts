@@ -60,7 +60,18 @@ const useStyles = makeStyles({
   },
   topic: {
     color: 'blue', /* Define a cor azul */
-    fontWeight: 'bold',
+    padding: '6px', // Espaço interno
+    backgroundColor: '#fafafa', // Cor de fundo
+    border: '1px solid #ddd', // Borda do elemento
+    borderRadius: '8px', // Bordas arredondadas
+    cursor: 'move', // Cursor ao passar sobre o elemento
+    display: 'inline-block', // Faz com que o elemento ocupe apenas o espaço do conteúdo
+  },
+  dragCloneImage: {
+    position: 'absolute',
+    top: '-9999px',
+    left: '-9999px',
+    border: '2px solid red', // Apenas para teste, remova depois
   },
 });
 

@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Box, Typography, Paper, Button, TextField, Dialog, DialogActions, DialogContent, DialogTitle, Select, MenuItem, SelectChangeEvent } from '@mui/material';
 import { useData } from '../contexts/DataContext';
 import useStyles from './PageStyles'; // Importando os estilos
@@ -33,6 +33,7 @@ export const ModelsPage: React.FC = () => {
   const [open, setOpen] = useState(false);
   const [modelName, setModelName] = useState('');
   const [modelContent, setModelContent] = useState<ContentPart[]>([]);
+  const [selectedModelId, setSelectedModelId] = useState<string>('');
 
   const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault();
@@ -142,21 +143,120 @@ export const ModelsPage: React.FC = () => {
     }
   };  
   
-  const handleModelSelect = (event: SelectChangeEvent<string>) => {
+  const handleModelSelect = (event: SelectChangeEvent<string>) => { 
     const selectedId = event.target.value as string;
+    console.log('Selected value:', selectedId);
     const selectedModel = models.find(model => model.id === selectedId);
     if (selectedModel) {
       renderModelContent(selectedModel); // Atualiza o conteúdo da caixa de texto
     }
   };
 
-  const handleDragStart = (event: React.DragEvent<HTMLSpanElement>) => {
-    const topicId = event.dataTransfer.getData('text');
-    setModelContent(prevContent =>
-      prevContent.filter(contentPart =>
-        !contentPart.positions.some(position => position.topicId === topicId)
-      )
-    );
+  // const handleDragStart = (event: React.DragEvent<HTMLSpanElement>) => {
+  //   const topicId = event.dataTransfer.getData('text');
+  //   setModelContent(prevContent =>
+  //     prevContent.filter(contentPart =>
+  //       !contentPart.positions.some(position => position.topicId === topicId)
+  //     )
+  //   );
+  // };
+
+  // Aqui você pode chamar addDragEvents em um useEffect ou outro ponto adequado
+  useEffect(() => {
+    addDragEvents();
+  }, []);
+
+  useEffect(() => {
+    const handleDragEnd = () => {
+      // Remove o clone do DOM após o arrasto
+      const clones = document.querySelectorAll(`.${classes.dragCloneImage}`);
+      clones.forEach(clone => clone.remove());
+    };
+  
+    window.addEventListener('dragend', handleDragEnd);
+  
+    console.log('handleDragEnd Listener');
+    return () => {
+      window.removeEventListener('dragend', handleDragEnd);
+    };
+  }, [classes.dragCloneImage]);
+
+  //Definição da função handleDragStart
+  const handleDragStart = (event: DragEvent) => {
+    const target = event.target as HTMLDivElement;
+    if (target) {
+
+      // Clona o elemento
+      const clone = target.cloneNode(true) as HTMLDivElement;
+      clone.classList.add(classes.dragCloneImage); // Aplica o estilo do clone
+
+      // Adiciona o clone ao DOM, fora da tela
+      clone.style.position = 'absolute';
+      clone.style.top = '-9999px'; // Move o clone para fora da visualização
+      clone.style.left = '-9999px';
+      document.body.appendChild(clone);
+
+      // Define a imagem de arrasto personalizada
+      if (event.dataTransfer) {
+        event.dataTransfer.setDragImage(clone, 0, 0);
+        // Exibe o clone no console
+        console.log('Clone do elemento:', clone);
+      }
+      else {
+        console.log('event.dataTransfer é null');
+
+      }
+      // Remove o elemento do DOM
+      target.parentElement?.removeChild(target);
+      
+      console.log('Elemento arrastado:', target.innerText);
+    }    
+  };
+
+  // const handleDragStart = (event: DragEvent) => {
+  //   const target = event.target as HTMLDivElement; // Identifica o elemento arrastado
+  
+  //   if (target) {
+  //     // Define o "drag image" para o evento de arrasto (opcional)
+  //     event.dataTransfer?.setDragImage(target, 0, 0);
+  
+  //     // Remover o elemento do DOM ao iniciar o arrasto
+  //     target.remove(); // Remove o elemento do DOM
+  //   }
+  // };
+
+  // const handleDragStart = (event: DragEvent) => {
+  //   const target = event.target as HTMLDivElement;
+
+  //   if (target) {
+  //     // Criar uma cópia do elemento para usar como imagem de arrasto
+  //     const dragImage = target.cloneNode(true) as HTMLDivElement;
+  //     dragImage.style.position = 'absolute';
+  //     dragImage.style.top = '-9999px'; // Move o elemento para fora da visualização
+  //     document.body.appendChild(dragImage);
+
+  //     // Definir a imagem de arrasto personalizada
+  //     event.dataTransfer?.setDragImage(dragImage, 0, 0);
+
+  //     // Remover o elemento original do DOM
+  //     target.remove();
+
+  //     // Adicionar um listener para limpar o clone após o arrasto
+  //     if (event.target != null) {
+  //       event.target.addEventListener('dragend', () => {
+  //         dragImage.remove();
+  //       }, { once: true }); // O listener será removido após a primeira execução
+  //     }
+  //   }
+  // };
+
+  const addDragEvents = () => {
+    console.log('addDragEvents');
+    const topicElements = document.querySelectorAll(`.${classes.topic}`);
+    topicElements.forEach(element => {
+      element.addEventListener('dragstart', handleDragStart as EventListener);
+      console.log('addEventListener');
+    });
   };
 
   const renderModelContent = (model: Model) => {
@@ -173,8 +273,13 @@ export const ModelsPage: React.FC = () => {
         part.positions.forEach(position => {
           const topic = topics.find(t => t.id === position.topicId);
           if (topic) {
-            const topicHtml = `<span style="color: blue; cursor: pointer; user-select: text;" draggable="true" ondragstart="handleDragStart(event)">{${topic.question}}</span>`;
-            // Adiciona o nome do tópico no texto na posição especificada
+            //const topicHtml = `<span style="color: blue; cursor: pointer;" draggable="true">{${topic.question}}</span>`;
+            const topicHtml = `<div  
+            class="${classes.topic}" 
+            draggable="true" 
+            data-topic-id="${topic.id}">
+              ${topic.question}
+            </div>`;
             htmlContent = htmlContent.slice(0, position.position + lastIndex) +
               topicHtml + 
               htmlContent.slice(position.position + lastIndex);
@@ -198,6 +303,30 @@ export const ModelsPage: React.FC = () => {
       }
     }
   };
+
+  // useEffect(() => {
+  //   const handleDragStartBound = handleDragStart.bind(window);
+
+  //   // Adiciona o evento dragstart ao elemento criado dinamicamente
+  //   const addDragEvents = () => {
+  //     const topicElements = document.querySelectorAll(`.${classes.topic}`);
+  //     topicElements.forEach(element => {
+  //       element.addEventListener('dragstart', handleDragStartBound as EventListener);
+  //     });
+  //   };
+  
+  //   if (textFieldRef.current) {
+  //     addDragEvents();
+  //   }
+  
+  //   // Limpa os eventos quando o componente é desmontado ou quando o conteúdo é atualizado
+  //   return () => {
+  //     const topicElements = document.querySelectorAll(`.${classes.topic}`);
+  //     topicElements.forEach(element => {
+  //       element.removeEventListener('dragstart', handleDragStartBound as EventListener);
+  //     });
+  //   };
+  // }, [modelContent, classes.topic]);
 
   const handleAddModel = () => {
     if (textFieldRef.current) {
@@ -228,7 +357,7 @@ export const ModelsPage: React.FC = () => {
       <Box className={classes.rightSide} onDrop={handleDrop} onDragOver={handleDragOver}>
         <Box className={classes.selectContainer}>
           <Select
-            // value={selectedModelId}
+            value={selectedModelId}
             onChange={handleModelSelect}
             displayEmpty
             className={classes.select}
