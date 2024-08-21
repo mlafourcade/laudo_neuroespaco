@@ -32,27 +32,49 @@ export const ModelsPage: React.FC = () => {
   const textFieldRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
   const [modelName, setModelName] = useState('');
-  const [modelContent, setModelContent] = useState<ContentPart[]>([]);
   const [selectedModelId, setSelectedModelId] = useState<string>('');
+
+  // const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
+  //   event.preventDefault();
+  //   const topicId = event.dataTransfer.getData('text');
+  //   const topic = topics.find(t => t.id === topicId);
+  //   if (topic && textFieldRef.current) {
+  //     const range = document.caretRangeFromPoint(event.clientX, event.clientY);
+  //     const topicText = `{${topic.question}}`;
+  //     if (range) {
+  //       const span = document.createElement("span");
+  //       span.innerText = topicText;
+  //       span.style.color = 'blue';
+  //       range.insertNode(span);
+  //     }
+  //   }
+  // };
 
   const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault();
-    const topicId = event.dataTransfer.getData('text');
+    const topicId = event.dataTransfer.getData('text/plain');
     const topic = topics.find(t => t.id === topicId);
+    
     if (topic && textFieldRef.current) {
       const range = document.caretRangeFromPoint(event.clientX, event.clientY);
       const topicText = `{${topic.question}}`;
+      
       if (range) {
+        const existingElement = document.querySelector(`[data-topic-id='${topicId}']`);
+        
+        if (existingElement) {
+          // Se o tópico já está no texto e foi movido, remova o elemento existente
+          existingElement.remove();
+        }
+  
+        // Cria um novo elemento de tópico
         const span = document.createElement("span");
         span.innerText = topicText;
         span.style.color = 'blue';
+        span.dataset.topicId = topicId; // Adiciona o ID do tópico como dado do elemento
+  
+        // Insere o novo elemento no local apropriado
         range.insertNode(span);
-
-        const position = range.startOffset;
-        setModelContent(prevContent => [
-          ...prevContent,
-          { text: topicText, positions: [{ topicId, position }] }
-        ]);
       }
     }
   };
@@ -146,117 +168,68 @@ export const ModelsPage: React.FC = () => {
   const handleModelSelect = (event: SelectChangeEvent<string>) => { 
     const selectedId = event.target.value as string;
     console.log('Selected value:', selectedId);
+    setSelectedModelId(selectedId);
     const selectedModel = models.find(model => model.id === selectedId);
     if (selectedModel) {
       renderModelContent(selectedModel); // Atualiza o conteúdo da caixa de texto
     }
   };
 
-  // const handleDragStart = (event: React.DragEvent<HTMLSpanElement>) => {
-  //   const topicId = event.dataTransfer.getData('text');
-  //   setModelContent(prevContent =>
-  //     prevContent.filter(contentPart =>
-  //       !contentPart.positions.some(position => position.topicId === topicId)
-  //     )
-  //   );
-  // };
-
-  // Aqui você pode chamar addDragEvents em um useEffect ou outro ponto adequado
   useEffect(() => {
-    addDragEvents();
-  }, []);
+  
+    const topicElements = document.querySelectorAll(`.${classes.topic}`);
+    topicElements.forEach(element => {
+      element.addEventListener('dragstart', handleDragStart as EventListener);
+      element.addEventListener('dragend', handleDragEnd as EventListener);
+      console.log('addEventListener');
+    });
 
-  useEffect(() => {
-    const handleDragEnd = () => {
-      // Remove o clone do DOM após o arrasto
-      const clones = document.querySelectorAll(`.${classes.dragCloneImage}`);
-      clones.forEach(clone => clone.remove());
-    };
-  
-    window.addEventListener('dragend', handleDragEnd);
-  
-    console.log('handleDragEnd Listener');
     return () => {
-      window.removeEventListener('dragend', handleDragEnd);
+      topicElements.forEach(element => {
+        element.removeEventListener('dragstart', handleDragStart as EventListener);
+        element.removeEventListener('dragend', handleDragEnd as EventListener);
+        console.log('removeEventListener');
+      });
     };
-  }, [classes.dragCloneImage]);
+  }, [selectedModelId]);
+
+  const handleDragEnd = () => {
+    console.log('handleDragEnd');
+  };
 
   //Definição da função handleDragStart
   const handleDragStart = (event: DragEvent) => {
     const target = event.target as HTMLDivElement;
     if (target) {
-
-      // Clona o elemento
+      // Cria um clone do elemento
       const clone = target.cloneNode(true) as HTMLDivElement;
-      clone.classList.add(classes.dragCloneImage); // Aplica o estilo do clone
 
-      // Adiciona o clone ao DOM, fora da tela
+      // Modifique o texto do clone
+      clone.innerText = `Clone: ${target.innerText}`;
+
       clone.style.position = 'absolute';
-      clone.style.top = '-9999px'; // Move o clone para fora da visualização
-      clone.style.left = '-9999px';
+      clone.style.top = '0';
+      clone.style.left = '0';
+      clone.style.opacity = '0.5'; // Torna o clone semi-transparente
+
+      // Adiciona o clone ao DOM
       document.body.appendChild(clone);
 
-      // Define a imagem de arrasto personalizada
-      if (event.dataTransfer) {
+      if (event.dataTransfer != null) {
+        // Define o clone como a imagem do cursor para o arrasto
         event.dataTransfer.setDragImage(clone, 0, 0);
-        // Exibe o clone no console
-        console.log('Clone do elemento:', clone);
-      }
-      else {
-        console.log('event.dataTransfer é null');
+        // Armazena o ID do tópico no dataTransfer
+        event.dataTransfer.setData('text/plain', target.dataset.topicId || '');
 
+        // Atrasar a remoção do elemento original para garantir que o clone seja renderizado como imagem de arrasto
+        setTimeout(() => {
+          target.remove();
+        }, 0);   
       }
-      // Remove o elemento do DOM
-      target.parentElement?.removeChild(target);
-      
-      console.log('Elemento arrastado:', target.innerText);
+
+      console.log('Elemento original:', target.innerText);
+      console.log('Elemento clone:', clone.innerText);
     }    
-  };
-
-  // const handleDragStart = (event: DragEvent) => {
-  //   const target = event.target as HTMLDivElement; // Identifica o elemento arrastado
-  
-  //   if (target) {
-  //     // Define o "drag image" para o evento de arrasto (opcional)
-  //     event.dataTransfer?.setDragImage(target, 0, 0);
-  
-  //     // Remover o elemento do DOM ao iniciar o arrasto
-  //     target.remove(); // Remove o elemento do DOM
-  //   }
-  // };
-
-  // const handleDragStart = (event: DragEvent) => {
-  //   const target = event.target as HTMLDivElement;
-
-  //   if (target) {
-  //     // Criar uma cópia do elemento para usar como imagem de arrasto
-  //     const dragImage = target.cloneNode(true) as HTMLDivElement;
-  //     dragImage.style.position = 'absolute';
-  //     dragImage.style.top = '-9999px'; // Move o elemento para fora da visualização
-  //     document.body.appendChild(dragImage);
-
-  //     // Definir a imagem de arrasto personalizada
-  //     event.dataTransfer?.setDragImage(dragImage, 0, 0);
-
-  //     // Remover o elemento original do DOM
-  //     target.remove();
-
-  //     // Adicionar um listener para limpar o clone após o arrasto
-  //     if (event.target != null) {
-  //       event.target.addEventListener('dragend', () => {
-  //         dragImage.remove();
-  //       }, { once: true }); // O listener será removido após a primeira execução
-  //     }
-  //   }
-  // };
-
-  const addDragEvents = () => {
-    console.log('addDragEvents');
-    const topicElements = document.querySelectorAll(`.${classes.topic}`);
-    topicElements.forEach(element => {
-      element.addEventListener('dragstart', handleDragStart as EventListener);
-      console.log('addEventListener');
-    });
   };
 
   const renderModelContent = (model: Model) => {
@@ -303,30 +276,6 @@ export const ModelsPage: React.FC = () => {
       }
     }
   };
-
-  // useEffect(() => {
-  //   const handleDragStartBound = handleDragStart.bind(window);
-
-  //   // Adiciona o evento dragstart ao elemento criado dinamicamente
-  //   const addDragEvents = () => {
-  //     const topicElements = document.querySelectorAll(`.${classes.topic}`);
-  //     topicElements.forEach(element => {
-  //       element.addEventListener('dragstart', handleDragStartBound as EventListener);
-  //     });
-  //   };
-  
-  //   if (textFieldRef.current) {
-  //     addDragEvents();
-  //   }
-  
-  //   // Limpa os eventos quando o componente é desmontado ou quando o conteúdo é atualizado
-  //   return () => {
-  //     const topicElements = document.querySelectorAll(`.${classes.topic}`);
-  //     topicElements.forEach(element => {
-  //       element.removeEventListener('dragstart', handleDragStartBound as EventListener);
-  //     });
-  //   };
-  // }, [modelContent, classes.topic]);
 
   const handleAddModel = () => {
     if (textFieldRef.current) {
