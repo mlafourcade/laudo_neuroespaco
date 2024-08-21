@@ -28,53 +28,43 @@ interface Model {
 
 export const ModelsPage: React.FC = () => {
   const classes = useStyles();
-  const { topics, models, addModel } = useData(); // Usando o DataContext para acessar os modelos globais e função de adicionar modelo
+  const { topics, models, setModels, addModel } = useData(); // Usando o DataContext para acessar os modelos globais e função de adicionar modelo
   const textFieldRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
   const [modelName, setModelName] = useState('');
   const [selectedModelId, setSelectedModelId] = useState<string>('');
-
-  // const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
-  //   event.preventDefault();
-  //   const topicId = event.dataTransfer.getData('text');
-  //   const topic = topics.find(t => t.id === topicId);
-  //   if (topic && textFieldRef.current) {
-  //     const range = document.caretRangeFromPoint(event.clientX, event.clientY);
-  //     const topicText = `{${topic.question}}`;
-  //     if (range) {
-  //       const span = document.createElement("span");
-  //       span.innerText = topicText;
-  //       span.style.color = 'blue';
-  //       range.insertNode(span);
-  //     }
-  //   }
-  // };
+  const [modelo, setModelo] = useState<Model | null>(null);
 
   const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault();
     const topicId = event.dataTransfer.getData('text/plain');
     const topic = topics.find(t => t.id === topicId);
-    
-    if (topic && textFieldRef.current) {
-      const range = document.caretRangeFromPoint(event.clientX, event.clientY);
-      const topicText = `{${topic.question}}`;
-      
-      if (range) {
-        const existingElement = document.querySelector(`[data-topic-id='${topicId}']`);
-        
-        if (existingElement) {
-          // Se o tópico já está no texto e foi movido, remova o elemento existente
-          existingElement.remove();
+
+    if (textFieldRef.current && topic) {
+      // Cria o HTML do tópico no formato usado em renderModelContent
+      const topicHtml = `&nbsp<div  
+        class="${classes.topic}" 
+        draggable="true" 
+        data-topic-id="${topic.id}">
+          ${topic.question}
+        </div>`;
+  
+      // Insere o HTML no local correto no texto
+      const selection = window.getSelection();
+      if (selection && selection.rangeCount > 0) {
+        const range = selection.getRangeAt(0);
+        range.deleteContents(); // Remove o conteúdo atual selecionado
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = topicHtml; // Adiciona o HTML do tópico temporariamente em um div
+        const frag = document.createDocumentFragment();
+  
+        let node;
+        while ((node = tempDiv.firstChild)) {
+          frag.appendChild(node); // Move os filhos do div temporário para o fragmento
         }
   
-        // Cria um novo elemento de tópico
-        const span = document.createElement("span");
-        span.innerText = topicText;
-        span.style.color = 'blue';
-        span.dataset.topicId = topicId; // Adiciona o ID do tópico como dado do elemento
-  
-        // Insere o novo elemento no local apropriado
-        range.insertNode(span);
+        range.insertNode(frag); // Insere o fragmento no local desejado
+        range.collapse(false); // Move o cursor para depois do elemento inserido
       }
     }
   };
@@ -92,7 +82,7 @@ export const ModelsPage: React.FC = () => {
     }
   };
 
-  const handleSave = () => {
+  const handleAddModel = () => {
     if (textFieldRef.current) {
       setOpen(true); // Abrir modal para entrada do nome do modelo
     }
@@ -106,7 +96,11 @@ export const ModelsPage: React.FC = () => {
     setModelName(event.target.value);
   };
 
-  const handleSaveModel = () => {
+
+  const handleChangedModel = (action: number) => {
+
+    console.log('Entrou como Action = ', action);
+
     if (modelName.trim() === '') {
       alert('O nome do modelo não pode estar vazio.');
       return;
@@ -129,16 +123,14 @@ export const ModelsPage: React.FC = () => {
           currentText += node.textContent;
         } else if (node.nodeType === Node.ELEMENT_NODE) {
           const element = node as HTMLElement;
-          if (element.tagName === 'SPAN' && element.style.color === 'blue') {
-            // Adiciona o texto atual como uma parte do modelo
+          if (element.tagName === 'DIV' && element.classList.contains(classes.topic)) {
             if (currentText) {
               contentParts.push({ text: currentText, positions });
               currentText = '';
               positions = [];
             }
   
-            // Adiciona a parte do tópico
-            const topicId = topics.find(t => `{${t.question}}` === element.innerText)?.id;
+            const topicId = element.getAttribute('data-topic-id');
             if (topicId) {
               positions.push({ topicId, position: 0 });
             }
@@ -152,15 +144,30 @@ export const ModelsPage: React.FC = () => {
       }
   
       // Cria o novo modelo com o conteúdo formatado
-      const newModel: Model = {
-        id: Date.now().toString(), // Usar uma lógica mais robusta para gerar ID em produção
+      const modelChanged: Model = {
+        id: action === 0 ? Date.now().toString(): selectedModelId, 
         name: modelName,
         content: contentParts
       };
-      
-      // Adiciona o modelo ao contexto global
-      addModel(newModel);
-      console.log('Modelo salvo:', newModel);
+
+      if (action === 0) {
+        // Adiciona o modelo ao contexto global
+        addModel(modelChanged);
+      }
+      else {
+        // Atualizando o modelo no array 'models'
+        const updatedModels = models.map((model) =>
+          model.id === modelChanged.id ? modelChanged : model
+        );
+
+        setModels(updatedModels);
+      }
+
+      console.log('ContentParts:', contentParts);
+      console.log('Positions:', positions);
+      console.log('CurrentText:', currentText);
+      console.log('Modelo salvo:', modelChanged);
+      console.log('Array modelos:', models);
       handleDialogClose();
     }
   };  
@@ -171,6 +178,8 @@ export const ModelsPage: React.FC = () => {
     setSelectedModelId(selectedId);
     const selectedModel = models.find(model => model.id === selectedId);
     if (selectedModel) {
+      setModelName(selectedModel.name);
+      setModelo(selectedModel);
       renderModelContent(selectedModel); // Atualiza o conteúdo da caixa de texto
     }
   };
@@ -246,16 +255,15 @@ export const ModelsPage: React.FC = () => {
         part.positions.forEach(position => {
           const topic = topics.find(t => t.id === position.topicId);
           if (topic) {
-            //const topicHtml = `<span style="color: blue; cursor: pointer;" draggable="true">{${topic.question}}</span>`;
-            const topicHtml = `<div  
-            class="${classes.topic}" 
-            draggable="true" 
-            data-topic-id="${topic.id}">
-              ${topic.question}
-            </div>`;
-            htmlContent = htmlContent.slice(0, position.position + lastIndex) +
-              topicHtml + 
-              htmlContent.slice(position.position + lastIndex);
+            const topicHtml = `&nbsp<div  
+              class="${classes.topic}" 
+              draggable="true" 
+              data-topic-id="${topic.id}">
+                ${topic.question}
+              </div>`;
+              htmlContent = htmlContent.slice(0, position.position + lastIndex) +
+                topicHtml +
+                htmlContent.slice(position.position + lastIndex);
           }
         });
   
@@ -274,12 +282,6 @@ export const ModelsPage: React.FC = () => {
         selection.removeAllRanges();
         selection.addRange(range);
       }
-    }
-  };
-
-  const handleAddModel = () => {
-    if (textFieldRef.current) {
-      setOpen(true); // Abrir modal para entrada do nome do modelo
     }
   };
 
@@ -337,10 +339,10 @@ export const ModelsPage: React.FC = () => {
         <Button
           variant="contained"
           color="primary"
-          onClick={handleSave}
+          onClick={() => handleChangedModel(1)}
           className={classes.save}
         >
-          Salvar
+          Atualizar
         </Button>
       </Box>
 
@@ -363,7 +365,7 @@ export const ModelsPage: React.FC = () => {
           <Button onClick={handleDialogClose} color="primary">
             Cancelar
           </Button>
-          <Button onClick={handleSaveModel} color="primary">
+          <Button onClick={() => handleChangedModel(0)} color="primary">
             Salvar
           </Button>
         </DialogActions>

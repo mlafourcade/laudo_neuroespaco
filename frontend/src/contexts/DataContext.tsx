@@ -26,6 +26,7 @@ export type DataContextType = {
   addAnswerToTopic: (topicId: string, answerText: string) => void;
   addTextToAnswer: (topicId: string, answerId: string, textContent: string) => void;
   addModel: (model: Model) => void;
+  setModels: (models: Model[]) => void;
 }
 
 // Criação do contexto
@@ -75,7 +76,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <DataContext.Provider value={{ topics, models, addTopic, addAnswerToTopic, addTextToAnswer, addModel }}>
+    <DataContext.Provider value={{ topics, models, addTopic, addAnswerToTopic, addTextToAnswer, addModel, setModels }}>
       {children}
     </DataContext.Provider>
   );

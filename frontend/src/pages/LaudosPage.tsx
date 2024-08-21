@@ -112,7 +112,7 @@ export const LaudosPage: React.FC = () => {
         </Select>
         {selectedModel && (
           <Box sx={{ overflowY: 'auto' }}>
-            {selectedModel.content.map((item, index) => (
+            {selectedModel.content.filter((_, index) => index !== 0).map((item, index) => (
               <Paper
                 key={index}
                 sx={{
