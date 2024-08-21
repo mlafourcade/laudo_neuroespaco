@@ -255,15 +255,15 @@ export const ModelsPage: React.FC = () => {
         part.positions.forEach(position => {
           const topic = topics.find(t => t.id === position.topicId);
           if (topic) {
-            const topicHtml = `&nbsp<div  
-              class="${classes.topic}" 
-              draggable="true" 
-              data-topic-id="${topic.id}">
-                ${topic.question}
-              </div>`;
-              htmlContent = htmlContent.slice(0, position.position + lastIndex) +
-                topicHtml +
-                htmlContent.slice(position.position + lastIndex);
+            const topicHtml = `<div  
+            class="${classes.topic}" 
+            draggable="true" 
+            data-topic-id="${topic.id}">
+              ${topic.question}
+            </div>`;
+            htmlContent = htmlContent.slice(0, position.position + lastIndex) +
+              topicHtml + 
+              htmlContent.slice(position.position + lastIndex);
           }
         });
   
