@@ -241,6 +241,50 @@ export const ModelsPage: React.FC = () => {
     }    
   };
 
+  // const renderModelContent = (model: Model) => {
+  //   if (textFieldRef.current) {
+  //     let htmlContent = '';
+  //     let lastIndex = 0;
+  
+  //     // Itera sobre cada parte do conteúdo do modelo
+  //     model.content.forEach(part => {
+  //       // Adiciona o texto anterior antes da parte atual
+  //       htmlContent += part.text;
+  
+  //       // Adiciona os tópicos nas posições correspondentes
+  //       part.positions.forEach(position => {
+  //         const topic = topics.find(t => t.id === position.topicId);
+  //         if (topic) {
+  //           const topicHtml = `<div  
+  //           class="${classes.topic}" 
+  //           draggable="true" 
+  //           data-topic-id="${topic.id}">
+  //             ${topic.question}
+  //           </div>`;
+  //           htmlContent = htmlContent.slice(0, position.position + lastIndex) +
+  //             topicHtml + 
+  //             htmlContent.slice(position.position + lastIndex);
+  //         }
+  //       });
+  
+  //       lastIndex += part.text.length;
+  //     });
+  
+  //     // Atualiza o conteúdo da área de texto com o HTML gerado
+  //     textFieldRef.current.innerHTML = htmlContent;
+  
+  //     // Ajusta a posição do cursor para o início
+  //     const range = document.createRange();
+  //     const selection = window.getSelection();
+  //     if (selection) {
+  //       range.setStart(textFieldRef.current.firstChild || textFieldRef.current, 0);
+  //       range.collapse(true);
+  //       selection.removeAllRanges();
+  //       selection.addRange(range);
+  //     }
+  //   }
+  // };
+
   const renderModelContent = (model: Model) => {
     if (textFieldRef.current) {
       let htmlContent = '';
@@ -248,26 +292,36 @@ export const ModelsPage: React.FC = () => {
   
       // Itera sobre cada parte do conteúdo do modelo
       model.content.forEach(part => {
-        // Adiciona o texto anterior antes da parte atual
-        htmlContent += part.text;
+        let currentPartText = part.text;
+        
+        // Ordena as posições para garantir a ordem correta
+        const sortedPositions = [...part.positions].sort((a, b) => a.position - b.position);
   
-        // Adiciona os tópicos nas posições correspondentes
-        part.positions.forEach(position => {
+        sortedPositions.forEach(position => {
           const topic = topics.find(t => t.id === position.topicId);
           if (topic) {
+            const start = lastIndex;
+            const end = position.position;
+            lastIndex = end;
+  
+            // Texto antes do próximo tópico
+            const textBefore = currentPartText.substring(start, end);
+            htmlContent += textBefore;
+  
+            // Inserção do tópico na posição correta
             const topicHtml = `<div  
-            class="${classes.topic}" 
-            draggable="true" 
-            data-topic-id="${topic.id}">
-              ${topic.question}
-            </div>`;
-            htmlContent = htmlContent.slice(0, position.position + lastIndex) +
-              topicHtml + 
-              htmlContent.slice(position.position + lastIndex);
+              class="${classes.topic}" 
+              draggable="true" 
+              data-topic-id="${topic.id}">
+                ${topic.question}
+              </div>`;
+            htmlContent += topicHtml;
           }
         });
   
-        lastIndex += part.text.length;
+        // Adiciona o restante do texto após o último tópico
+        const remainingText = currentPartText.substring(lastIndex);
+        htmlContent += remainingText;
       });
   
       // Atualiza o conteúdo da área de texto com o HTML gerado
@@ -284,7 +338,7 @@ export const ModelsPage: React.FC = () => {
       }
     }
   };
-
+  
   return (
     <Box className={classes.root}>
       {/* Lateral Esquerda: Lista de Tópicos */}
