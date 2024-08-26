@@ -23,8 +23,11 @@ export type DataContextType = {
   topics: Topic[];
   models: Model[];
   addTopic: (topic: Topic) => void;
+  updateTopic: (id: string, newQuestion: string) => void;
   addAnswerToTopic: (topicId: string, answerText: string) => void;
-  addTextToAnswer: (topicId: string, answerId: string, textContent: string) => void;
+  updateAnswerToTopic: (topicId: string, answerId: string, newAnswerText: string) => void;
+  addTextToAnswer: (answerId: string, textContent: string) => void;
+  updateTextToAnswer: (answerId: string, newAnswerText: string) => void;
   addModel: (model: Model) => void;
   setModels: (models: Model[]) => void;
 }
@@ -42,6 +45,15 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setTopics((prevTopics) => [...prevTopics, topic]);
   };
 
+  // Função para editar um tópico
+  const updateTopic = (id: string, newQuestion: string) => {
+    setTopics((prevTopics) =>
+      prevTopics.map((topic) =>
+        topic.id === id ? { ...topic, question: newQuestion } : topic
+      )
+    );
+  };
+
   // Função para adicionar uma resposta a um tópico
   const addAnswerToTopic = (topicId: string, answerText: string) => {
     setTopics((prevTopics) =>
@@ -56,8 +68,26 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     );
   };
 
+  // Função para atualizar uma resposta existente em um tópico
+  const updateAnswerToTopic = (topicId: string, answerId: string, newAnswerText: string) => {
+    setTopics((prevTopics) =>
+      prevTopics.map((topic) =>
+        topic.id === topicId
+          ? {
+              ...topic,
+              answers: topic.answers.map((answer) =>
+                answer.id === answerId
+                  ? { ...answer, text: newAnswerText }
+                  : answer
+              ),
+            }
+          : topic
+      )
+    );
+  };
+
   // Função para adicionar um texto a uma resposta
-  const addTextToAnswer = (topicId: string, answerId: string, textContent: string) => {
+  const addTextToAnswer = (answerId: string, textContent: string) => {
     setTopics((prevTopics) =>
       prevTopics.map((topic) => ({
         ...topic,
@@ -70,13 +100,27 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     );
   };
 
+  // Função para atualizar o texto de uma resposta existente
+  const updateTextToAnswer = (answerId: string, newTextContent: string) => {
+    setTopics((prevTopics) =>
+      prevTopics.map((topic) => ({
+        ...topic,
+        answers: topic.answers.map((answer) =>
+          answer.id === answerId
+            ? { ...answer, responseText: newTextContent }
+            : answer
+        ),
+      }))
+    );
+  };
+
   // Função para adicionar um modelo
   const addModel = (model: Model) => {
     setModels((prevModels) => [...prevModels, model]);
   };
 
   return (
-    <DataContext.Provider value={{ topics, models, addTopic, addAnswerToTopic, addTextToAnswer, addModel, setModels }}>
+    <DataContext.Provider value={{ topics, models, addTopic, updateTopic, addAnswerToTopic, updateAnswerToTopic, addTextToAnswer, updateTextToAnswer, addModel, setModels }}>
       {children}
     </DataContext.Provider>
   );

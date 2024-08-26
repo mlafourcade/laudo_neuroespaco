@@ -1,15 +1,22 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Box, Button, TextField, Typography, Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material';
 
 interface CreateTopicFormProps {
   open: boolean;
   onClose: () => void;
   onSave: (topic: string) => void;
+  initialText?: string; 
 }
 
-export const CreateTopicForm: React.FC<CreateTopicFormProps> = ({ open, onClose, onSave }) => {
+export const CreateTopicForm: React.FC<CreateTopicFormProps> = ({ open, onClose, onSave, initialText }) => {
+
   const [topic, setTopic] = useState('');
 
+  // Atualiza o estado do tópico sempre que initialText mudar
+  useEffect(() => {
+    setTopic(initialText || '');
+  }, [initialText]);
+  
   const handleSave = () => {
     if (topic.trim()) {
       onSave(topic);
@@ -20,11 +27,11 @@ export const CreateTopicForm: React.FC<CreateTopicFormProps> = ({ open, onClose,
 
   return (
     <Dialog open={open} onClose={onClose}>
-      <DialogTitle>Criar Novo Tópico</DialogTitle>
+      <DialogTitle>{initialText ? 'Editar Tópico' : 'Criar Tópico'}</DialogTitle>
       <DialogContent>
         <Box sx={{ width: '400px' }}>
           <Typography variant="body1" gutterBottom>
-            Insira o novo tópico:
+            Novo tópico:
           </Typography>
           <TextField
             fullWidth

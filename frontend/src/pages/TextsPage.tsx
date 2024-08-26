@@ -22,7 +22,7 @@ export const TextsPage: React.FC = () => {
 
   const handleSave = () => {
     if (selectedAnswer) {
-      addTextToAnswer(selectedAnswer.topicId, selectedAnswer.answerId, newText);
+      addTextToAnswer(selectedAnswer.answerId, newText);
       handleClose();
     }
   };

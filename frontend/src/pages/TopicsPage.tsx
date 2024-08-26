@@ -1,23 +1,35 @@
 // src/pages/TopicsPage.tsx
 import React, { useState } from 'react';
-import { Box, Button, List, ListItem, ListItemText, Typography } from '@mui/material';
+import { Box, Button, IconButton, List, ListItem, ListItemText, Typography } from '@mui/material';
 import { CreateTopicForm } from './CreateTopicForm';
 import { useData } from '../contexts/DataContext';
+import EditIcon from '@mui/icons-material/Edit';
 
 export const TopicsPage: React.FC = () => {
-  const { topics, addTopic } = useData(); // Usando contexto para acessar tópicos globais e função de adicionar tópicos
+  const { topics, addTopic, updateTopic } = useData(); // Usando contexto para acessar tópicos globais e função de adicionar tópicos
   const [open, setOpen] = useState(false);
+  const [currentTopic, setCurrentTopic] = useState<{ id: string; question: string } | null>(null);
 
   const handleCreateClick = () => {
     setOpen(true);
   };
 
-  const handleClose = () => {
-    setOpen(false);
+  const handleEditClick = (topic: { id: string; question: string }) => {
+    setCurrentTopic(topic);
+    setOpen(true);
   };
 
-  const handleSave = (topic: string) => {
-    addTopic({ id: Date.now().toString(), question: topic, answers: [] });
+  const handleClose = () => {
+    setOpen(false);
+    setCurrentTopic(null);
+  };
+
+  const handleSave = (topicQuestion: string) => {
+    if (currentTopic) {
+      updateTopic(currentTopic.id, topicQuestion); // Atualiza o tópico existente
+    } else {
+      addTopic({ id: Date.now().toString(), question: topicQuestion, answers: [] }); // Cria um novo tópico
+    }
     setOpen(false);
   };
 
@@ -29,14 +41,40 @@ export const TopicsPage: React.FC = () => {
       <Button variant="contained" color="primary" onClick={handleCreateClick}>
         Criar
       </Button>
-      <List sx={{ marginTop: '20px', backgroundColor: '#fff', borderRadius: '4px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+      <List
+        sx={{
+          marginTop: '20px',
+          backgroundColor: '#fff',
+          borderRadius: '4px',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+        }}
+      >
         {topics.map((topic) => (
-          <ListItem key={topic.id}>
+          <ListItem
+            key={topic.id}
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+            }}
+          >
             <ListItemText primary={topic.question} />
+            <IconButton
+              edge="end"
+              aria-label="edit"
+              onClick={() => handleEditClick(topic)}
+            >
+              <EditIcon />
+            </IconButton>
           </ListItem>
         ))}
       </List>
-      <CreateTopicForm open={open} onClose={handleClose} onSave={handleSave} />
+      <CreateTopicForm
+        open={open}
+        onClose={handleClose}
+        onSave={handleSave}
+        initialText={currentTopic?.question || ''} // Define o texto inicial para o modal
+      />
     </Box>
   );
-}
+};
