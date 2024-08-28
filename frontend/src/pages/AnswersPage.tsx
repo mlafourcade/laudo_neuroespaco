@@ -2,11 +2,13 @@ import React, { useState } from 'react';
 import { Box, Typography, List, ListItem, ListItemText, Button } from '@mui/material';
 import { useData } from '../contexts/DataContext';
 import { CreateAnswerForm } from './CreateAnswerForm';
+import EditIcon from '@mui/icons-material/Edit';
 
 export const AnswersPage: React.FC = () => {
-  const { topics, addAnswerToTopic } = useData(); // Acessando tópicos globais e função de adicionar respostas
+  const { topics, addAnswerToTopic, updateAnswerToTopic } = useData(); // Acessando tópicos globais e função de adicionar respostas
   const [selectedTopicId, setSelectedTopicId] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
+  const [currentAnswer, setCurrentAnswer] = useState<{ id: string, text: string } | null>(null);
 
   const handleCreateClick = (topicId: string) => {
     setSelectedTopicId(topicId);
@@ -17,11 +19,30 @@ export const AnswersPage: React.FC = () => {
     setOpen(false);
   };
 
+  // const handleSave = (answer: string) => {
+  //   if (selectedTopicId) {
+  //     addAnswerToTopic(selectedTopicId, answer);
+  //     setOpen(false);
+  //   }
+  // };
+
   const handleSave = (answer: string) => {
-    if (selectedTopicId) {
-      addAnswerToTopic(selectedTopicId, answer);
-      setOpen(false);
-    }
+    if (currentAnswer) {
+      if (selectedTopicId) {
+        updateAnswerToTopic(selectedTopicId, currentAnswer.id, answer); // Atualiza a resposta existente
+      }
+    } else {
+        if (selectedTopicId) {
+          addAnswerToTopic(selectedTopicId, answer);
+        }
+      }
+    setOpen(false);
+    setCurrentAnswer(null); // Limpa a resposta atual após salvar
+  };  
+    
+  const handleEditAnswerClick = (answerId: string, answerText: string) => {
+    setCurrentAnswer({ id: answerId, text: answerText });
+    setOpen(true);
   };
 
   return (
@@ -36,6 +57,10 @@ export const AnswersPage: React.FC = () => {
             {topic.answers.map((answer) => (
               <ListItem key={answer.id}>
                 <ListItemText primary={answer.text} />
+                <EditIcon 
+                  sx={{ cursor: 'pointer' }} 
+                  onClick={() => handleEditAnswerClick(answer.id, answer.text)} 
+                />
               </ListItem>
             ))}
           </List>
