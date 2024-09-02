@@ -1,16 +1,27 @@
+// src/pages/TextsPage.tsx
+
 import React, { useState } from 'react';
 import { Box, Typography, Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField } from '@mui/material';
 import { TextTopicContainer } from '../componentes/TextTopicContainer';
 import { useData } from '../contexts/DataContext';
 
 export const TextsPage: React.FC = () => {
-  const { topics, addTextToAnswer } = useData(); // Usando contexto para acessar tópicos e adicionar textos
+  const { topics, addTextToAnswer, updateTextToAnswer } = useData();
   const [open, setOpen] = useState(false);
   const [selectedAnswer, setSelectedAnswer] = useState<{ topicId: string, answerId: string } | null>(null);
   const [newText, setNewText] = useState('');
+  const [isEditing, setIsEditing] = useState(false);
 
   const handleCreateClick = (topicId: string, answerId: string) => {
     setSelectedAnswer({ topicId, answerId });
+    setIsEditing(false);
+    setOpen(true);
+  };
+
+  const handleEditClick = (topicId: string, answerId: string, existingText: string) => {
+    setSelectedAnswer({ topicId, answerId });
+    setNewText(existingText);
+    setIsEditing(true);
     setOpen(true);
   };
 
@@ -18,11 +29,16 @@ export const TextsPage: React.FC = () => {
     setOpen(false);
     setSelectedAnswer(null);
     setNewText('');
+    setIsEditing(false);
   };
 
   const handleSave = () => {
     if (selectedAnswer) {
-      addTextToAnswer(selectedAnswer.answerId, newText);
+      if (isEditing) {
+        updateTextToAnswer(selectedAnswer.answerId, newText);
+      } else {
+        addTextToAnswer(selectedAnswer.answerId, newText);
+      }
       handleClose();
     }
   };
@@ -36,11 +52,12 @@ export const TextsPage: React.FC = () => {
         <TextTopicContainer
           key={topic.id}
           topic={topic}
-          onAddText={handleCreateClick} // Passa a função que abre o modal para adicionar texto
+          onAddText={handleCreateClick}
+          onEditText={handleEditClick} // Adiciona a função para edição
         />
       ))}
       <Dialog open={open} onClose={handleClose}>
-        <DialogTitle>Adicionar Texto</DialogTitle>
+        <DialogTitle>{isEditing ? 'Editar Texto' : 'Adicionar Texto'}</DialogTitle>
         <DialogContent>
           <TextField
             multiline

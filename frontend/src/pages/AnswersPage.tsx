@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Box, Typography, List, ListItem, ListItemText, Button } from '@mui/material';
 import { useData } from '../contexts/DataContext';
 import { CreateAnswerForm } from './CreateAnswerForm';
@@ -10,8 +10,13 @@ export const AnswersPage: React.FC = () => {
   const [open, setOpen] = useState(false);
   const [currentAnswer, setCurrentAnswer] = useState<{ id: string, text: string } | null>(null);
 
+  useEffect(() => {
+    console.log('selectedTopicId', selectedTopicId);
+  }, [selectedTopicId]);
+
   const handleCreateClick = (topicId: string) => {
     setSelectedTopicId(topicId);
+    setCurrentAnswer(null); // Limpa a resposta atual para garantir que estamos criando uma nova
     setOpen(true);
   };
 
@@ -19,29 +24,23 @@ export const AnswersPage: React.FC = () => {
     setOpen(false);
   };
 
-  // const handleSave = (answer: string) => {
-  //   if (selectedTopicId) {
-  //     addAnswerToTopic(selectedTopicId, answer);
-  //     setOpen(false);
-  //   }
-  // };
-
   const handleSave = (answer: string) => {
-    if (currentAnswer) {
-      if (selectedTopicId) {
+    console.log('handleSave');
+    if (selectedTopicId) {
+      if (currentAnswer) {
         updateAnswerToTopic(selectedTopicId, currentAnswer.id, answer); // Atualiza a resposta existente
       }
-    } else {
-        if (selectedTopicId) {
-          addAnswerToTopic(selectedTopicId, answer);
-        }
+      else {
+        addAnswerToTopic(selectedTopicId, answer); // Adiciona uma nova resposta
       }
+    }
     setOpen(false);
     setCurrentAnswer(null); // Limpa a resposta atual após salvar
-  };  
-    
-  const handleEditAnswerClick = (answerId: string, answerText: string) => {
-    setCurrentAnswer({ id: answerId, text: answerText });
+  };
+
+  const handleEditAnswerClick = (topicId: string, answerId: string, answerText: string) => {
+    setCurrentAnswer({ id: answerId, text: answerText }); // Define a resposta atual para edição
+    setSelectedTopicId(topicId); // Configura o ID do tópico associado
     setOpen(true);
   };
 
@@ -59,7 +58,7 @@ export const AnswersPage: React.FC = () => {
                 <ListItemText primary={answer.text} />
                 <EditIcon 
                   sx={{ cursor: 'pointer' }} 
-                  onClick={() => handleEditAnswerClick(answer.id, answer.text)} 
+                  onClick={() => handleEditAnswerClick(topic.id, answer.id, answer.text)}  
                 />
               </ListItem>
             ))}
@@ -69,7 +68,12 @@ export const AnswersPage: React.FC = () => {
           </Button>
         </Box>
       ))}
-      <CreateAnswerForm open={open} onClose={handleClose} onSave={handleSave} />
+      <CreateAnswerForm 
+        open={open} 
+        onClose={handleClose} 
+        onSave={handleSave} 
+        initialText={currentAnswer?.text || ''} // Passa o texto da resposta para edição ou vazio se criando nova
+      />
     </Box>
   );
 };

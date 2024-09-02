@@ -9,9 +9,7 @@ interface CreateTopicFormProps {
 }
 
 export const CreateTopicForm: React.FC<CreateTopicFormProps> = ({ open, onClose, onSave, initialText }) => {
-
   const [topic, setTopic] = useState('');
-
   // Atualiza o estado do tópico sempre que initialText mudar
   useEffect(() => {
     setTopic(initialText || '');

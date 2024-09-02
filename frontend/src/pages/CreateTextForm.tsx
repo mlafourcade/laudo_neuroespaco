@@ -1,15 +1,23 @@
 // src/componentes/CreateTextForm.tsx
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField } from '@mui/material';
 
 interface CreateTextFormProps {
   open: boolean;
   onClose: () => void;
   onSave: (text: string) => void;
+  initialText?: string; // Prop opcional para texto inicial
 }
 
-export const CreateTextForm: React.FC<CreateTextFormProps> = ({ open, onClose, onSave }) => {
-  const [text, setText] = useState('');
+export const CreateTextForm: React.FC<CreateTextFormProps> = ({ open, onClose, onSave, initialText = '' }) => {
+  const [text, setText] = useState(initialText);
+
+  useEffect(() => {
+    if (initialText) {
+      setText(initialText);
+    }
+  }, [initialText]);
 
   const handleSave = () => {
     onSave(text);
@@ -18,7 +26,7 @@ export const CreateTextForm: React.FC<CreateTextFormProps> = ({ open, onClose, o
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
-      <DialogTitle>Adicionar Texto</DialogTitle>
+      <DialogTitle>{initialText ? 'Editar Texto' : 'Adicionar Texto'}</DialogTitle>
       <DialogContent dividers>
         <TextField
           autoFocus

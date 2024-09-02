@@ -23,6 +23,7 @@ export type DataContextType = {
   topics: Topic[];
   models: Model[];
   addTopic: (topic: Topic) => void;
+  deleteTopic: (id: string) => void; // Nova função para deletar tópicos
   updateTopic: (id: string, newQuestion: string) => void;
   addAnswerToTopic: (topicId: string, answerText: string) => void;
   updateAnswerToTopic: (topicId: string, answerId: string, newAnswerText: string) => void;
@@ -43,6 +44,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Função para adicionar um tópico
   const addTopic = (topic: Topic) => {
     setTopics((prevTopics) => [...prevTopics, topic]);
+  };
+
+  const deleteTopic = (id: string) => {
+    setTopics(topics.filter(topic => topic.id !== id)); // Filtra o tópico que não deve ser deletado
   };
 
   // Função para editar um tópico
@@ -120,7 +125,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <DataContext.Provider value={{ topics, models, addTopic, updateTopic, addAnswerToTopic, updateAnswerToTopic, addTextToAnswer, updateTextToAnswer, addModel, setModels }}>
+    <DataContext.Provider value={{ topics, models, addTopic, deleteTopic, updateTopic, addAnswerToTopic, updateAnswerToTopic, addTextToAnswer, updateTextToAnswer, addModel, setModels }}>
       {children}
     </DataContext.Provider>
   );

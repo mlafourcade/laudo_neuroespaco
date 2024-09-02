@@ -4,9 +4,10 @@ import { Box, Button, IconButton, List, ListItem, ListItemText, Typography } fro
 import { CreateTopicForm } from './CreateTopicForm';
 import { useData } from '../contexts/DataContext';
 import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete'; // Importar ícone de lixeira
 
 export const TopicsPage: React.FC = () => {
-  const { topics, addTopic, updateTopic } = useData(); // Usando contexto para acessar tópicos globais e função de adicionar tópicos
+  const { topics, addTopic, deleteTopic , updateTopic } = useData(); // Usando contexto para acessar tópicos globais e função de adicionar tópicos
   const [open, setOpen] = useState(false);
   const [currentTopic, setCurrentTopic] = useState<{ id: string; question: string } | null>(null);
 
@@ -19,6 +20,10 @@ export const TopicsPage: React.FC = () => {
     setOpen(true);
   };
 
+  const handleDeleteClick = (topicId: string) => {
+    deleteTopic(topicId); // Chama a função de deletar o tópico
+  };
+  
   const handleClose = () => {
     setOpen(false);
     setCurrentTopic(null);
@@ -59,13 +64,22 @@ export const TopicsPage: React.FC = () => {
             }}
           >
             <ListItemText primary={topic.question} />
-            <IconButton
-              edge="end"
-              aria-label="edit"
-              onClick={() => handleEditClick(topic)}
-            >
-              <EditIcon />
-            </IconButton>
+            <Box>
+              <IconButton
+                edge="end"
+                aria-label="edit"
+                onClick={() => handleEditClick(topic)}
+              >
+                <EditIcon />
+              </IconButton>
+              <IconButton
+                edge="end"
+                aria-label="delete"
+                onClick={() => handleDeleteClick(topic.id)} // Chama a função de deletar o tópico
+              >
+                <DeleteIcon />
+              </IconButton>
+            </Box>
           </ListItem>
         ))}
       </List>

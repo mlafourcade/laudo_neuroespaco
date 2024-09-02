@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box, Button, Typography, Paper } from '@mui/material';
-import { Answer } from '../contexts/DataContext';
+import EditIcon from '@mui/icons-material/Edit'; // Adicione esta linha
 
 interface TextTopicContainerProps {
   topic: {
@@ -13,9 +13,10 @@ interface TextTopicContainerProps {
     }[];
   };
   onAddText: (topicId: string, answerId: string) => void; // Função para adicionar texto
+  onEditText?: (topicId: string, answerId: string, existingText: string) => void; // Função opcional para editar texto
 }
 
-export const TextTopicContainer: React.FC<TextTopicContainerProps> = ({ topic, onAddText }) => {
+export const TextTopicContainer: React.FC<TextTopicContainerProps> = ({ topic, onAddText, onEditText }) => {
   return (
     <Paper sx={{ padding: '16px', marginBottom: '16px', borderRadius: '4px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
       <Typography variant="h6" gutterBottom>
@@ -25,9 +26,8 @@ export const TextTopicContainer: React.FC<TextTopicContainerProps> = ({ topic, o
         <Box
           key={answer.id}
           sx={{
-            display: 'grid',
-            gridTemplateColumns: '1fr auto',
-            alignItems: 'center',
+            display: 'flex',
+            flexDirection: 'column', // Mantém a estrutura vertical
             gap: '16px',
             marginBottom: '16px',
             padding: '8px',
@@ -36,32 +36,47 @@ export const TextTopicContainer: React.FC<TextTopicContainerProps> = ({ topic, o
             backgroundColor: '#fafafa'
           }}
         >
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <Typography variant="body1" sx={{ overflowY: 'auto', maxHeight: '100px' }}>
               {answer.text}
             </Typography>
-            {answer.responseText && (
-              <Box
-                sx={{
-                  padding: '8px',
-                  border: '1px solid #ddd',
-                  borderRadius: '4px',
-                  overflowY: 'auto',
-                  maxHeight: '100px',
-                  backgroundColor: '#fff'
-                }}
-              >
-                <Typography variant="body2">{answer.responseText}</Typography>
-              </Box>
-            )}
+            <Button
+              variant="outlined"
+              color="primary"
+              onClick={() => onAddText(topic.id, answer.id)}
+              sx={{
+                opacity: answer.responseText ? 0.5 : 1,
+                cursor: answer.responseText ? 'not-allowed' : 'pointer'
+              }}
+              disabled={!!answer.responseText} // Desabilita o botão se já houver um texto
+            >
+              Criar Texto
+            </Button>
           </Box>
-          <Button
-            variant="outlined"
-            color="primary"
-            onClick={() => onAddText(topic.id, answer.id)}
-          >
-            Criar Texto
-          </Button>
+          {answer.responseText && (
+            <Box
+              sx={{
+                padding: '8px',
+                border: '1px solid #ddd',
+                borderRadius: '4px',
+                overflowY: 'auto',
+                maxHeight: '100px',
+                backgroundColor: '#fff',
+                display: 'flex',
+                alignItems: 'center',
+              }}
+            >
+              <Typography variant="body2" sx={{ flex: 1 }}>
+                {answer.responseText}
+              </Typography>
+              {onEditText && (
+                <EditIcon
+                  sx={{ cursor: 'pointer', marginLeft: '8px' }}
+                  onClick={() => onEditText(topic.id, answer.id, answer.responseText || '')}
+                />
+              )}
+            </Box>
+          )}
         </Box>
       ))}
     </Paper>
