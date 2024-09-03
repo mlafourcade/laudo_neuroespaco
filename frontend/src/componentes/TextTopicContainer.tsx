@@ -1,6 +1,7 @@
 import React from 'react';
 import { Box, Button, Typography, Paper } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit'; // Adicione esta linha
+import DeleteIcon from '@mui/icons-material/Delete';
 
 interface TextTopicContainerProps {
   topic: {
@@ -14,9 +15,10 @@ interface TextTopicContainerProps {
   };
   onAddText: (topicId: string, answerId: string) => void; // Função para adicionar texto
   onEditText?: (topicId: string, answerId: string, existingText: string) => void; // Função opcional para editar texto
+  onDeleteText?: (topicId: string, answerId: string) => void; // Função opcional para deletar texto
 }
 
-export const TextTopicContainer: React.FC<TextTopicContainerProps> = ({ topic, onAddText, onEditText }) => {
+export const TextTopicContainer: React.FC<TextTopicContainerProps> = ({ topic, onAddText, onEditText, onDeleteText }) => {
   return (
     <Paper sx={{ padding: '16px', marginBottom: '16px', borderRadius: '4px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
       <Typography variant="h6" gutterBottom>
@@ -71,10 +73,16 @@ export const TextTopicContainer: React.FC<TextTopicContainerProps> = ({ topic, o
               </Typography>
               {onEditText && (
                 <EditIcon
-                  sx={{ cursor: 'pointer', marginLeft: '8px' }}
+                  sx={{ cursor: 'pointer', marginLeft: '8px', color: '#707070' }}
                   onClick={() => onEditText(topic.id, answer.id, answer.responseText || '')}
                 />
               )}
+              {onDeleteText && (
+                <DeleteIcon
+                  sx={{ cursor: 'pointer', color: '#707070' }}
+                  onClick={() => onDeleteText(topic.id, answer.id)}
+                />
+              )}            
             </Box>
           )}
         </Box>

@@ -6,7 +6,7 @@ import { TextTopicContainer } from '../componentes/TextTopicContainer';
 import { useData } from '../contexts/DataContext';
 
 export const TextsPage: React.FC = () => {
-  const { topics, addTextToAnswer, updateTextToAnswer } = useData();
+  const { topics, addTextToAnswer, updateTextToAnswer, deleteTextFromAnswer } = useData();
   const [open, setOpen] = useState(false);
   const [selectedAnswer, setSelectedAnswer] = useState<{ topicId: string, answerId: string } | null>(null);
   const [newText, setNewText] = useState('');
@@ -23,6 +23,10 @@ export const TextsPage: React.FC = () => {
     setNewText(existingText);
     setIsEditing(true);
     setOpen(true);
+  };
+
+  const handleDeleteText = (topicId: string, answerId: string) => {
+    deleteTextFromAnswer(topicId, answerId);
   };
 
   const handleClose = () => {
@@ -54,6 +58,7 @@ export const TextsPage: React.FC = () => {
           topic={topic}
           onAddText={handleCreateClick}
           onEditText={handleEditClick} // Adiciona a função para edição
+          onDeleteText={handleDeleteText}
         />
       ))}
       <Dialog open={open} onClose={handleClose}>

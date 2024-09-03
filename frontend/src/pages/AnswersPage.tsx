@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Typography, List, ListItem, ListItemText, Button } from '@mui/material';
+import { Box, Typography, List, ListItem, ListItemText, Button, IconButton } from '@mui/material';
 import { useData } from '../contexts/DataContext';
 import { CreateAnswerForm } from './CreateAnswerForm';
 import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
 
 export const AnswersPage: React.FC = () => {
-  const { topics, addAnswerToTopic, updateAnswerToTopic } = useData(); // Acessando tópicos globais e função de adicionar respostas
+  const { topics, addAnswerToTopic, updateAnswerToTopic, deleteAnswer } = useData(); // Acessando tópicos globais e função de adicionar respostas
   const [selectedTopicId, setSelectedTopicId] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
   const [currentAnswer, setCurrentAnswer] = useState<{ id: string, text: string } | null>(null);
@@ -44,6 +45,10 @@ export const AnswersPage: React.FC = () => {
     setOpen(true);
   };
 
+  const handleDeleteAnswer = (topicId: string, answerId: string) => {
+    deleteAnswer(topicId, answerId);
+  };
+
   return (
     <Box sx={{ padding: '20px' }}>
       <Typography variant="h4" gutterBottom>
@@ -56,10 +61,19 @@ export const AnswersPage: React.FC = () => {
             {topic.answers.map((answer) => (
               <ListItem key={answer.id}>
                 <ListItemText primary={answer.text} />
-                <EditIcon 
-                  sx={{ cursor: 'pointer' }} 
-                  onClick={() => handleEditAnswerClick(topic.id, answer.id, answer.text)}  
-                />
+              <IconButton
+                edge="end"
+                aria-label="edit"
+                onClick={() => handleEditAnswerClick(topic.id, answer.id, answer.text)}
+              >
+                <EditIcon />
+              </IconButton>
+                <IconButton 
+                  edge="end" 
+                  aria-label="delete" 
+                  onClick={() => handleDeleteAnswer(topic.id, answer.id)}>
+                  <DeleteIcon />
+                </IconButton>
               </ListItem>
             ))}
           </List>

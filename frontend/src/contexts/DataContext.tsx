@@ -23,12 +23,14 @@ export type DataContextType = {
   topics: Topic[];
   models: Model[];
   addTopic: (topic: Topic) => void;
-  deleteTopic: (id: string) => void; // Nova função para deletar tópicos
+  deleteTopic: (id: string) => void;
   updateTopic: (id: string, newQuestion: string) => void;
   addAnswerToTopic: (topicId: string, answerText: string) => void;
   updateAnswerToTopic: (topicId: string, answerId: string, newAnswerText: string) => void;
+  deleteAnswer: (topicId: string, answerId: string) => void; // Função para deletar resposta
   addTextToAnswer: (answerId: string, textContent: string) => void;
-  updateTextToAnswer: (answerId: string, newAnswerText: string) => void;
+  updateTextToAnswer: (answerId: string, newTextContent: string) => void;
+  deleteTextFromAnswer: (topicId: string, answerId: string) => void; // Função para deletar texto de uma resposta
   addModel: (model: Model) => void;
   setModels: (models: Model[]) => void;
 }
@@ -46,8 +48,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setTopics((prevTopics) => [...prevTopics, topic]);
   };
 
+  // Função para deletar um tópico
   const deleteTopic = (id: string) => {
-    setTopics(topics.filter(topic => topic.id !== id)); // Filtra o tópico que não deve ser deletado
+    setTopics((prevTopics) => prevTopics.filter(topic => topic.id !== id));
   };
 
   // Função para editar um tópico
@@ -91,6 +94,20 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     );
   };
 
+  // Função para deletar uma resposta de um tópico
+  const deleteAnswer = (topicId: string, answerId: string) => {
+    setTopics((prevTopics) =>
+      prevTopics.map((topic) =>
+        topic.id === topicId
+          ? {
+              ...topic,
+              answers: topic.answers.filter(answer => answer.id !== answerId),
+            }
+          : topic
+      )
+    );
+  };
+
   // Função para adicionar um texto a uma resposta
   const addTextToAnswer = (answerId: string, textContent: string) => {
     setTopics((prevTopics) =>
@@ -119,13 +136,50 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     );
   };
 
+  // Função para deletar o texto de uma resposta
+  const deleteTextFromAnswer = (topicId: string, answerId: string) => {
+    setTopics((prevTopics) =>
+      prevTopics.map((topic) =>
+        topic.id === topicId
+          ? {
+              ...topic,
+              answers: topic.answers.map((answer) =>
+                answer.id === answerId
+                  ? {
+                      ...answer,
+                      responseText: undefined // Ou pode ser '' para uma string vazia
+                    }
+                  : answer
+              ),
+            }
+          : topic
+      )
+    );
+  };
+
   // Função para adicionar um modelo
   const addModel = (model: Model) => {
     setModels((prevModels) => [...prevModels, model]);
   };
 
   return (
-    <DataContext.Provider value={{ topics, models, addTopic, deleteTopic, updateTopic, addAnswerToTopic, updateAnswerToTopic, addTextToAnswer, updateTextToAnswer, addModel, setModels }}>
+    <DataContext.Provider
+      value={{
+        topics,
+        models,
+        addTopic,
+        deleteTopic,
+        updateTopic,
+        addAnswerToTopic,
+        updateAnswerToTopic,
+        deleteAnswer,
+        addTextToAnswer,
+        updateTextToAnswer,
+        deleteTextFromAnswer,
+        addModel,
+        setModels
+      }}
+    >
       {children}
     </DataContext.Provider>
   );
