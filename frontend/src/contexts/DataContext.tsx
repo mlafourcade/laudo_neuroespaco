@@ -1,5 +1,25 @@
 import React, { createContext, useContext, useState } from 'react';
 
+// Estrutura para Paciente
+export type Paciente = {
+  id: string;
+  nome: string;
+  idade: number;
+  sexo: string;
+  endereco: string;
+  telefone: string;
+  email: string;
+  // Adicione outros campos necessários aqui
+}
+
+// Estrutura para Laudo
+export type Laudo = {
+  id: string;
+  paciente: Paciente;
+  modeloId: string; // Referência ao ID do modelo
+  texto: string;
+}
+
 // Definições de tipos
 export type Answer = {
   id: string;
@@ -22,6 +42,10 @@ export type Model = {
 export type DataContextType = {
   topics: Topic[];
   models: Model[];
+  pacientes: Paciente[];
+  laudos: Laudo[];
+  addPaciente: (paciente: Paciente) => void;
+  addLaudo: (laudo: Laudo) => void;
   addTopic: (topic: Topic) => void;
   deleteTopic: (id: string) => void;
   updateTopic: (id: string, newQuestion: string) => void;
@@ -42,6 +66,16 @@ const DataContext = createContext<DataContextType | undefined>(undefined);
 export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [topics, setTopics] = useState<Topic[]>([]);
   const [models, setModels] = useState<Model[]>([]);
+  const [pacientes, setPacientes] = useState<Paciente[]>([]);
+  const [laudos, setLaudos] = useState<Laudo[]>([]);
+
+  const addPaciente = (paciente: Paciente) => {
+    setPacientes((prevPacientes) => [...prevPacientes, paciente]);
+  };
+
+  const addLaudo = (laudo: Laudo) => {
+    setLaudos((prevLaudos) => [...prevLaudos, laudo]);
+  };
 
   // Função para adicionar um tópico
   const addTopic = (topic: Topic) => {
@@ -167,6 +201,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       value={{
         topics,
         models,
+        pacientes, 
+        laudos, 
+        addPaciente, 
+        addLaudo,
         addTopic,
         deleteTopic,
         updateTopic,

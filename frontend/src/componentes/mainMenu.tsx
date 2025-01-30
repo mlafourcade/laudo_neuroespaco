@@ -29,6 +29,7 @@ export const MainMenu: React.FC = () => {
           Ferramenta de Modelos de Textos
         </Typography>
         <Tabs value={value} onChange={handleChange} textColor="inherit" indicatorColor="secondary">
+          <Tab label="Pacientes" component={Link} to="/pacientes" />
           <Tab label="Laudos" component={Link} to="/" />
           <Tab label="Modelos" component={Link} to="/modelos" />
           <Tab label="Tópicos" component={Link} to="/topicos" />
