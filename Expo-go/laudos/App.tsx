@@ -5,6 +5,7 @@ import { printToFileAsync } from 'expo-print';
 import { shareAsync } from 'expo-sharing'
 
 export default function App() {
+
   var [name, setName] = useState("");
   const html = `
     <html>
@@ -14,6 +15,7 @@ export default function App() {
       </body>
     </html>
   `;
+
   var generatePdf = async () => {
     const file = await printToFileAsync({
       html: html,
@@ -21,6 +23,7 @@ export default function App() {
     });
     await shareAsync(file.uri);
   };
+
   return (
     <View style={styles.container}>
       <TextInput value={name} placeholder='Name' style={styles.textInput} onChange={(value:any) => setName(value)} />
