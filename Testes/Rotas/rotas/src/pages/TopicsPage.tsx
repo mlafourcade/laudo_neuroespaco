@@ -1,10 +1,11 @@
+// src/pages/TopicsPage.tsx
 import React, { useState } from 'react';
-import { View, Text, Alert, Button, FlatList, TouchableOpacity } from 'react-native';
 import { useData } from '../contexts/DataContext';
+import { View, Text, Button, TouchableOpacity, Alert, FlatList } from 'react-native';
 import { pageStyles } from '../styles/PageStyles';
-import { CreateTopicForm } from '../componentes/CreateTopicForm';
+import { CreateTopicForm } from '../componentes/CreateTopicForm'; // Supondo que você tenha esse componente
 
-export const TopicosScreen: React.FC = () => {
+export const TopicsPage: React.FC = () => {
   const { topics, addTopic, deleteTopic, updateTopic } = useData(); // Usando contexto para acessar tópicos globais e função de adicionar tópicos
   const [open, setOpen] = useState(false);
   const [currentTopic, setCurrentTopic] = useState<{ id: string; question: string } | null>(null);
@@ -49,6 +50,7 @@ export const TopicosScreen: React.FC = () => {
     <View style={{ padding: 20 }}>
       <Text style={pageStyles.text}>Tópicos</Text>
       <Button title="Criar" onPress={handleCreateClick} />
+
       <FlatList
         data={topics}
         keyExtractor={(item) => item.id}
@@ -81,13 +83,13 @@ export const TopicosScreen: React.FC = () => {
           </View>
         )}
       />
+
       <CreateTopicForm
         open={open}
         onClose={handleClose}
         onSave={handleSave}
         initialText={currentTopic?.question || ''}
-      />      
+      />
     </View>
   );
 };
-

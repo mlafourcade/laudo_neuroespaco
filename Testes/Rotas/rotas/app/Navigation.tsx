@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, Button } from 'react-native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { RootStackParamList } from '../../App';
+import { RootStackParamList } from '../App';
 import { Link } from 'expo-router';
 
 // Tipagem para a navegação
@@ -11,14 +11,10 @@ type Props = {
   navigation: HomeScreenNavigationProp;
 };
 
-export const ReportScreen: React.FC<Props> = ({ navigation }) => {
+export const Navigation: React.FC<Props> = ({ navigation }) => {
   return (
     <View>
-      <Text>Home Screen</Text>
-      <Button
-        title="Ir para Detalhes"
-        onPress={() => navigation.navigate('Details')}
-      />
+      <Text>Navigation</Text>
       <Link href="/teste">
         <Button title="Ir para Teste" />
       </Link>
